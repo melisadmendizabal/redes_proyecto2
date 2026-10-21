@@ -1,0 +1,79 @@
+{
+    "RouteTables": [
+        {
+            "Associations": [
+                {
+                    "Main": false,
+                    "RouteTableAssociationId": "rtbassoc-0011c48efd11c7e16",
+                    "RouteTableId": "rtb-0da81810687e3a1f5",
+                    "SubnetId": "subnet-040a1957f26fc33e1",
+                    "AssociationState": {
+                        "State": "associated"
+                    }
+                },
+                {
+                    "Main": false,
+                    "RouteTableAssociationId": "rtbassoc-0e82f6c50dfcb4e35",
+                    "RouteTableId": "rtb-0da81810687e3a1f5",
+                    "SubnetId": "subnet-0de8bf7882cef552c",
+                    "AssociationState": {
+                        "State": "associated"
+                    }
+                }
+            ],
+            "PropagatingVgws": [],
+            "RouteTableId": "rtb-0da81810687e3a1f5",
+            "Routes": [
+                {
+                    "DestinationCidrBlock": "10.10.0.0/24",
+                    "GatewayId": "local",
+                    "Origin": "CreateRouteTable",
+                    "State": "active"
+                },
+                {
+                    "DestinationCidrBlock": "0.0.0.0/0",
+                    "GatewayId": "igw-05cfe9adf4052c2eb",
+                    "Origin": "CreateRoute",
+                    "State": "active"
+                }
+            ],
+            "Tags": [
+                {
+                    "Key": "Project",
+                    "Value": "proyecto-redes"
+                },
+                {
+                    "Key": "Name",
+                    "Value": "rt-publica"
+                }
+            ],
+            "VpcId": "vpc-0be4934b0720d41e3",
+            "OwnerId": "597936860595"
+        },
+        {
+            "Associations": [
+                {
+                    "Main": true,
+                    "RouteTableAssociationId": "rtbassoc-0fcf22d8f9c9ff57e",
+                    "RouteTableId": "rtb-00cf1495ce4c7e267",
+                    "AssociationState": {
+                        "State": "associated"
+                    }
+                }
+            ],
+            "PropagatingVgws": [],
+            "RouteTableId": "rtb-00cf1495ce4c7e267",
+            "Routes": [
+                {
+                    "DestinationCidrBlock": "10.10.0.0/24",
+                    "GatewayId": "local",
+                    "Origin": "CreateRouteTable",
+                    "State": "active"
+                }
+            ],
+            "Tags": [],
+            "VpcId": "vpc-0be4934b0720d41e3",
+            "OwnerId": "597936860595"
+        }
+    ]
+}

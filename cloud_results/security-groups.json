@@ -1,0 +1,100 @@
+{
+    "SecurityGroups": [
+        {
+            "GroupId": "sg-07f7351fb9100bbe1",
+            "IpPermissionsEgress": [
+                {
+                    "IpProtocol": "-1",
+                    "UserIdGroupPairs": [],
+                    "IpRanges": [
+                        {
+                            "CidrIp": "0.0.0.0/0"
+                        }
+                    ],
+                    "Ipv6Ranges": [],
+                    "PrefixListIds": []
+                }
+            ],
+            "VpcId": "vpc-0be4934b0720d41e3",
+            "SecurityGroupArn": "arn:aws:ec2:us-east-1:597936860595:security-group/sg-07f7351fb9100bbe1",
+            "OwnerId": "597936860595",
+            "GroupName": "default",
+            "Description": "default VPC security group",
+            "IpPermissions": [
+                {
+                    "IpProtocol": "-1",
+                    "UserIdGroupPairs": [
+                        {
+                            "UserId": "597936860595",
+                            "GroupId": "sg-07f7351fb9100bbe1"
+                        }
+                    ],
+                    "IpRanges": [],
+                    "Ipv6Ranges": [],
+                    "PrefixListIds": []
+                }
+            ]
+        },
+        {
+            "GroupId": "sg-0d1c0398543bc427d",
+            "IpPermissionsEgress": [
+                {
+                    "IpProtocol": "-1",
+                    "UserIdGroupPairs": [],
+                    "IpRanges": [
+                        {
+                            "CidrIp": "0.0.0.0/0"
+                        }
+                    ],
+                    "Ipv6Ranges": [],
+                    "PrefixListIds": []
+                }
+            ],
+            "Tags": [
+                {
+                    "Key": "Name",
+                    "Value": "sg-startup"
+                },
+                {
+                    "Key": "Project",
+                    "Value": "proyecto-redes"
+                }
+            ],
+            "VpcId": "vpc-0be4934b0720d41e3",
+            "SecurityGroupArn": "arn:aws:ec2:us-east-1:597936860595:security-group/sg-0d1c0398543bc427d",
+            "OwnerId": "597936860595",
+            "GroupName": "startup-sg",
+            "Description": "SSH desde CloudShell e ICMP interno",
+            "IpPermissions": [
+                {
+                    "IpProtocol": "tcp",
+                    "FromPort": 22,
+                    "ToPort": 22,
+                    "UserIdGroupPairs": [],
+                    "IpRanges": [
+                        {
+                            "Description": "ssh-cloudshell",
+                            "CidrIp": "44.202.16.200/32"
+                        }
+                    ],
+                    "Ipv6Ranges": [],
+                    "PrefixListIds": []
+                },
+                {
+                    "IpProtocol": "icmp",
+                    "FromPort": -1,
+                    "ToPort": -1,
+                    "UserIdGroupPairs": [],
+                    "IpRanges": [
+                        {
+                            "Description": "icmp-vpc",
+                            "CidrIp": "10.10.0.0/24"
+                        }
+                    ],
+                    "Ipv6Ranges": [],
+                    "PrefixListIds": []
+                }
+            ]
+        }
+    ]
+}

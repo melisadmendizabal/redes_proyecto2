@@ -1,0 +1,35 @@
+{
+    "Vpcs": [
+        {
+            "OwnerId": "597936860595",
+            "InstanceTenancy": "default",
+            "CidrBlockAssociationSet": [
+                {
+                    "AssociationId": "vpc-cidr-assoc-0e031eb9a1fe804e5",
+                    "CidrBlock": "10.10.0.0/24",
+                    "CidrBlockState": {
+                        "State": "associated"
+                    }
+                }
+            ],
+            "IsDefault": false,
+            "Tags": [
+                {
+                    "Key": "Name",
+                    "Value": "vpc-startup"
+                },
+                {
+                    "Key": "Project",
+                    "Value": "proyecto-redes"
+                }
+            ],
+            "BlockPublicAccessStates": {
+                "InternetGatewayBlockMode": "off"
+            },
+            "VpcId": "vpc-0be4934b0720d41e3",
+            "State": "available",
+            "CidrBlock": "10.10.0.0/24",
+            "DhcpOptionsId": "dopt-0be49cb013c1a0c11"
+        }
+    ]
+}

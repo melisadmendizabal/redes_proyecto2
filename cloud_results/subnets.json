@@ -1,0 +1,148 @@
+{
+    "Subnets": [
+        {
+            "AvailabilityZoneId": "use1-az1",
+            "MapCustomerOwnedIpOnLaunch": false,
+            "OwnerId": "597936860595",
+            "AssignIpv6AddressOnCreation": false,
+            "Ipv6CidrBlockAssociationSet": [],
+            "Tags": [
+                {
+                    "Key": "Project",
+                    "Value": "proyecto-redes"
+                },
+                {
+                    "Key": "Name",
+                    "Value": "snet-datacenter"
+                }
+            ],
+            "SubnetArn": "arn:aws:ec2:us-east-1:597936860595:subnet/subnet-07760fee0de88ca73",
+            "EnableDns64": false,
+            "Ipv6Native": false,
+            "PrivateDnsNameOptionsOnLaunch": {
+                "HostnameType": "ip-name",
+                "EnableResourceNameDnsARecord": false,
+                "EnableResourceNameDnsAAAARecord": false
+            },
+            "BlockPublicAccessStates": {
+                "InternetGatewayBlockMode": "off"
+            },
+            "SubnetId": "subnet-07760fee0de88ca73",
+            "State": "available",
+            "VpcId": "vpc-0be4934b0720d41e3",
+            "CidrBlock": "10.10.0.96/28",
+            "AvailableIpAddressCount": 11,
+            "AvailabilityZone": "us-east-1a",
+            "DefaultForAz": false,
+            "MapPublicIpOnLaunch": false
+        },
+        {
+            "AvailabilityZoneId": "use1-az1",
+            "MapCustomerOwnedIpOnLaunch": false,
+            "OwnerId": "597936860595",
+            "AssignIpv6AddressOnCreation": false,
+            "Ipv6CidrBlockAssociationSet": [],
+            "Tags": [
+                {
+                    "Key": "Name",
+                    "Value": "snet-visitas"
+                },
+                {
+                    "Key": "Project",
+                    "Value": "proyecto-redes"
+                }
+            ],
+            "SubnetArn": "arn:aws:ec2:us-east-1:597936860595:subnet/subnet-040a1957f26fc33e1",
+            "EnableDns64": false,
+            "Ipv6Native": false,
+            "PrivateDnsNameOptionsOnLaunch": {
+                "HostnameType": "ip-name",
+                "EnableResourceNameDnsARecord": false,
+                "EnableResourceNameDnsAAAARecord": false
+            },
+            "BlockPublicAccessStates": {
+                "InternetGatewayBlockMode": "off"
+            },
+            "SubnetId": "subnet-040a1957f26fc33e1",
+            "State": "available",
+            "VpcId": "vpc-0be4934b0720d41e3",
+            "CidrBlock": "10.10.0.64/27",
+            "AvailableIpAddressCount": 26,
+            "AvailabilityZone": "us-east-1a",
+            "DefaultForAz": false,
+            "MapPublicIpOnLaunch": true
+        },
+        {
+            "AvailabilityZoneId": "use1-az1",
+            "MapCustomerOwnedIpOnLaunch": false,
+            "OwnerId": "597936860595",
+            "AssignIpv6AddressOnCreation": false,
+            "Ipv6CidrBlockAssociationSet": [],
+            "Tags": [
+                {
+                    "Key": "Project",
+                    "Value": "proyecto-redes"
+                },
+                {
+                    "Key": "Name",
+                    "Value": "snet-ventas"
+                }
+            ],
+            "SubnetArn": "arn:aws:ec2:us-east-1:597936860595:subnet/subnet-0de8bf7882cef552c",
+            "EnableDns64": false,
+            "Ipv6Native": false,
+            "PrivateDnsNameOptionsOnLaunch": {
+                "HostnameType": "ip-name",
+                "EnableResourceNameDnsARecord": false,
+                "EnableResourceNameDnsAAAARecord": false
+            },
+            "BlockPublicAccessStates": {
+                "InternetGatewayBlockMode": "off"
+            },
+            "SubnetId": "subnet-0de8bf7882cef552c",
+            "State": "available",
+            "VpcId": "vpc-0be4934b0720d41e3",
+            "CidrBlock": "10.10.0.0/27",
+            "AvailableIpAddressCount": 25,
+            "AvailabilityZone": "us-east-1a",
+            "DefaultForAz": false,
+            "MapPublicIpOnLaunch": true
+        },
+        {
+            "AvailabilityZoneId": "use1-az1",
+            "MapCustomerOwnedIpOnLaunch": false,
+            "OwnerId": "597936860595",
+            "AssignIpv6AddressOnCreation": false,
+            "Ipv6CidrBlockAssociationSet": [],
+            "Tags": [
+                {
+                    "Key": "Name",
+                    "Value": "snet-ti"
+                },
+                {
+                    "Key": "Project",
+                    "Value": "proyecto-redes"
+                }
+            ],
+            "SubnetArn": "arn:aws:ec2:us-east-1:597936860595:subnet/subnet-0c80f6b4c2b801fa4",
+            "EnableDns64": false,
+            "Ipv6Native": false,
+            "PrivateDnsNameOptionsOnLaunch": {
+                "HostnameType": "ip-name",
+                "EnableResourceNameDnsARecord": false,
+                "EnableResourceNameDnsAAAARecord": false
+            },
+            "BlockPublicAccessStates": {
+                "InternetGatewayBlockMode": "off"
+            },
+            "SubnetId": "subnet-0c80f6b4c2b801fa4",
+            "State": "available",
+            "VpcId": "vpc-0be4934b0720d41e3",
+            "CidrBlock": "10.10.0.32/27",
+            "AvailableIpAddressCount": 27,
+            "AvailabilityZone": "us-east-1a",
+            "DefaultForAz": false,
+            "MapPublicIpOnLaunch": false
+        }
+    ]
+}

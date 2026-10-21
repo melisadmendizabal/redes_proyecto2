@@ -1,0 +1,24 @@
+{
+    "InternetGateways": [
+        {
+            "Attachments": [
+                {
+                    "State": "available",
+                    "VpcId": "vpc-0be4934b0720d41e3"
+                }
+            ],
+            "InternetGatewayId": "igw-05cfe9adf4052c2eb",
+            "OwnerId": "597936860595",
+            "Tags": [
+                {
+                    "Key": "Name",
+                    "Value": "igw-startup"
+                },
+                {
+                    "Key": "Project",
+                    "Value": "proyecto-redes"
+                }
+            ]
+        }
+    ]
+}
