@@ -1,0 +1,144 @@
+vm-ventas-1     = 10.10.0.27 (publica 13.223.243.134)
+vm-ventas-2     = 10.10.0.4 (publica 3.239.213.73)
+vm-ti-1         = 10.10.0.52 (privada)
+vm-datacenter-1 = 10.10.0.103 (privada)
+vm-visitas-1    = 10.10.0.81 (publica 100.53.105.193)
+
+##### PRUEBA 1: vm-ventas-1 -> vm-ventas-2 (misma subred, DEBE funcionar)
+ip-10-10-0-27.ec2.internal
+10.10.0.27
+PING 10.10.0.4 (10.10.0.4) 56(84) bytes of data.
+64 bytes from 10.10.0.4: icmp_seq=1 ttl=127 time=0.688 ms
+64 bytes from 10.10.0.4: icmp_seq=2 ttl=127 time=0.233 ms
+64 bytes from 10.10.0.4: icmp_seq=3 ttl=127 time=0.219 ms
+64 bytes from 10.10.0.4: icmp_seq=4 ttl=127 time=0.261 ms
+
+--- 10.10.0.4 ping statistics ---
+4 packets transmitted, 4 received, 0% packet loss, time 3116ms
+rtt min/avg/max/mdev = 0.219/0.350/0.688/0.195 ms
+
+##### PRUEBA 2: vm-ventas-2 -> vm-ventas-1 (sentido inverso, DEBE funcionar)
+ip-10-10-0-4.ec2.internal
+10.10.0.4
+PING 10.10.0.27 (10.10.0.27) 56(84) bytes of data.
+64 bytes from 10.10.0.27: icmp_seq=1 ttl=127 time=0.244 ms
+64 bytes from 10.10.0.27: icmp_seq=2 ttl=127 time=0.241 ms
+64 bytes from 10.10.0.27: icmp_seq=3 ttl=127 time=0.208 ms
+64 bytes from 10.10.0.27: icmp_seq=4 ttl=127 time=0.202 ms
+
+--- 10.10.0.27 ping statistics ---
+4 packets transmitted, 4 received, 0% packet loss, time 3101ms
+rtt min/avg/max/mdev = 0.202/0.223/0.244/0.018 ms
+
+##### PRUEBA 3: vm-ventas-1 -> vm-ti-1 (Ventas -> TI, DEBE funcionar)
+ip-10-10-0-27.ec2.internal
+10.10.0.27
+PING 10.10.0.52 (10.10.0.52) 56(84) bytes of data.
+64 bytes from 10.10.0.52: icmp_seq=1 ttl=127 time=0.609 ms
+64 bytes from 10.10.0.52: icmp_seq=2 ttl=127 time=0.238 ms
+64 bytes from 10.10.0.52: icmp_seq=3 ttl=127 time=0.257 ms
+64 bytes from 10.10.0.52: icmp_seq=4 ttl=127 time=0.237 ms
+
+--- 10.10.0.52 ping statistics ---
+4 packets transmitted, 4 received, 0% packet loss, time 3100ms
+rtt min/avg/max/mdev = 0.237/0.335/0.609/0.158 ms
+
+##### PRUEBA 4: vm-ti-1 -> vm-ventas-1 (TI -> Ventas, DEBE funcionar)
+ip-10-10-0-52.ec2.internal
+10.10.0.52
+PING 10.10.0.27 (10.10.0.27) 56(84) bytes of data.
+64 bytes from 10.10.0.27: icmp_seq=1 ttl=127 time=0.193 ms
+64 bytes from 10.10.0.27: icmp_seq=2 ttl=127 time=0.228 ms
+64 bytes from 10.10.0.27: icmp_seq=3 ttl=127 time=0.981 ms
+64 bytes from 10.10.0.27: icmp_seq=4 ttl=127 time=0.239 ms
+
+--- 10.10.0.27 ping statistics ---
+4 packets transmitted, 4 received, 0% packet loss, time 3095ms
+rtt min/avg/max/mdev = 0.193/0.410/0.981/0.329 ms
+
+##### PRUEBA 5: vm-ventas-1 -> vm-datacenter-1 (Ventas -> Data Center, DEBE funcionar)
+ip-10-10-0-27.ec2.internal
+10.10.0.27
+PING 10.10.0.103 (10.10.0.103) 56(84) bytes of data.
+64 bytes from 10.10.0.103: icmp_seq=1 ttl=127 time=0.530 ms
+64 bytes from 10.10.0.103: icmp_seq=2 ttl=127 time=0.195 ms
+64 bytes from 10.10.0.103: icmp_seq=3 ttl=127 time=0.200 ms
+64 bytes from 10.10.0.103: icmp_seq=4 ttl=127 time=0.221 ms
+
+--- 10.10.0.103 ping statistics ---
+4 packets transmitted, 4 received, 0% packet loss, time 3110ms
+rtt min/avg/max/mdev = 0.195/0.286/0.530/0.140 ms
+
+##### PRUEBA 6: vm-datacenter-1 -> vm-ventas-1 (Data Center -> Ventas, DEBE funcionar)
+ip-10-10-0-103.ec2.internal
+10.10.0.103
+PING 10.10.0.27 (10.10.0.27) 56(84) bytes of data.
+64 bytes from 10.10.0.27: icmp_seq=1 ttl=127 time=0.171 ms
+64 bytes from 10.10.0.27: icmp_seq=2 ttl=127 time=0.210 ms
+64 bytes from 10.10.0.27: icmp_seq=3 ttl=127 time=0.222 ms
+64 bytes from 10.10.0.27: icmp_seq=4 ttl=127 time=0.199 ms
+
+--- 10.10.0.27 ping statistics ---
+4 packets transmitted, 4 received, 0% packet loss, time 3088ms
+rtt min/avg/max/mdev = 0.171/0.200/0.222/0.018 ms
+
+##### PRUEBA 7: vm-ti-1 -> vm-datacenter-1 (TI -> Data Center, DEBE funcionar)
+ip-10-10-0-52.ec2.internal
+10.10.0.52
+PING 10.10.0.103 (10.10.0.103) 56(84) bytes of data.
+64 bytes from 10.10.0.103: icmp_seq=1 ttl=127 time=0.498 ms
+64 bytes from 10.10.0.103: icmp_seq=2 ttl=127 time=0.255 ms
+64 bytes from 10.10.0.103: icmp_seq=3 ttl=127 time=0.233 ms
+64 bytes from 10.10.0.103: icmp_seq=4 ttl=127 time=0.240 ms
+
+--- 10.10.0.103 ping statistics ---
+4 packets transmitted, 4 received, 0% packet loss, time 3099ms
+rtt min/avg/max/mdev = 0.233/0.306/0.498/0.110 ms
+
+##### PRUEBA 8: vm-datacenter-1 -> vm-ti-1 (Data Center -> TI, DEBE funcionar)
+ip-10-10-0-103.ec2.internal
+10.10.0.103
+PING 10.10.0.52 (10.10.0.52) 56(84) bytes of data.
+64 bytes from 10.10.0.52: icmp_seq=1 ttl=127 time=0.205 ms
+64 bytes from 10.10.0.52: icmp_seq=2 ttl=127 time=0.224 ms
+64 bytes from 10.10.0.52: icmp_seq=3 ttl=127 time=0.227 ms
+64 bytes from 10.10.0.52: icmp_seq=4 ttl=127 time=0.220 ms
+
+--- 10.10.0.52 ping statistics ---
+4 packets transmitted, 4 received, 0% packet loss, time 3088ms
+rtt min/avg/max/mdev = 0.205/0.219/0.227/0.008 ms
+
+##### PRUEBA 9: vm-visitas-1 -> vm-ventas-1 (DEBE FALLAR: la NACL aisla Visitas)
+ip-10-10-0-81.ec2.internal
+10.10.0.81
+PING 10.10.0.27 (10.10.0.27) 56(84) bytes of data.
+
+--- 10.10.0.27 ping statistics ---
+4 packets transmitted, 0 received, 100% packet loss, time 3086ms
+
+
+##### PRUEBA 10: vm-visitas-1 -> vm-ti-1 (DEBE FALLAR: la NACL aisla Visitas)
+ip-10-10-0-81.ec2.internal
+10.10.0.81
+PING 10.10.0.52 (10.10.0.52) 56(84) bytes of data.
+
+--- 10.10.0.52 ping statistics ---
+4 packets transmitted, 0 received, 100% packet loss, time 3137ms
+
+
+##### PRUEBA 11: vm-visitas-1 -> vm-datacenter-1 (DEBE FALLAR: la NACL aisla Visitas)
+ip-10-10-0-81.ec2.internal
+10.10.0.81
+PING 10.10.0.103 (10.10.0.103) 56(84) bytes of data.
+
+--- 10.10.0.103 ping statistics ---
+4 packets transmitted, 0 received, 100% packet loss, time 3137ms
+
+
+##### PRUEBA 12: vm-ventas-1 -> vm-visitas-1 (DEBE FALLAR: la NACL bloquea la respuesta de Visitas)
+ip-10-10-0-27.ec2.internal
+10.10.0.27
+PING 10.10.0.81 (10.10.0.81) 56(84) bytes of data.
+
+--- 10.10.0.81 ping statistics ---
+4 packets transmitted, 0 received, 100% packet loss, time 3152ms

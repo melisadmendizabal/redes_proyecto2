@@ -1,42 +1,7 @@
 {
     "SecurityGroups": [
         {
-            "GroupId": "sg-07f7351fb9100bbe1",
-            "IpPermissionsEgress": [
-                {
-                    "IpProtocol": "-1",
-                    "UserIdGroupPairs": [],
-                    "IpRanges": [
-                        {
-                            "CidrIp": "0.0.0.0/0"
-                        }
-                    ],
-                    "Ipv6Ranges": [],
-                    "PrefixListIds": []
-                }
-            ],
-            "VpcId": "vpc-0be4934b0720d41e3",
-            "SecurityGroupArn": "arn:aws:ec2:us-east-1:597936860595:security-group/sg-07f7351fb9100bbe1",
-            "OwnerId": "597936860595",
-            "GroupName": "default",
-            "Description": "default VPC security group",
-            "IpPermissions": [
-                {
-                    "IpProtocol": "-1",
-                    "UserIdGroupPairs": [
-                        {
-                            "UserId": "597936860595",
-                            "GroupId": "sg-07f7351fb9100bbe1"
-                        }
-                    ],
-                    "IpRanges": [],
-                    "Ipv6Ranges": [],
-                    "PrefixListIds": []
-                }
-            ]
-        },
-        {
-            "GroupId": "sg-0d1c0398543bc427d",
+            "GroupId": "sg-00203825199f203cb",
             "IpPermissionsEgress": [
                 {
                     "IpProtocol": "-1",
@@ -60,11 +25,11 @@
                     "Value": "proyecto-redes"
                 }
             ],
-            "VpcId": "vpc-0be4934b0720d41e3",
-            "SecurityGroupArn": "arn:aws:ec2:us-east-1:597936860595:security-group/sg-0d1c0398543bc427d",
+            "VpcId": "vpc-00889353775d6c950",
+            "SecurityGroupArn": "arn:aws:ec2:us-east-1:597936860595:security-group/sg-00203825199f203cb",
             "OwnerId": "597936860595",
             "GroupName": "startup-sg",
-            "Description": "SSH desde CloudShell e ICMP interno",
+            "Description": "SSH desde CloudShell, SSH e ICMP internos",
             "IpPermissions": [
                 {
                     "IpProtocol": "tcp",
@@ -74,7 +39,11 @@
                     "IpRanges": [
                         {
                             "Description": "ssh-cloudshell",
-                            "CidrIp": "44.202.16.200/32"
+                            "CidrIp": "174.129.87.242/32"
+                        },
+                        {
+                            "Description": "ssh-salto-vpc",
+                            "CidrIp": "10.10.0.0/24"
                         }
                     ],
                     "Ipv6Ranges": [],
@@ -91,6 +60,41 @@
                             "CidrIp": "10.10.0.0/24"
                         }
                     ],
+                    "Ipv6Ranges": [],
+                    "PrefixListIds": []
+                }
+            ]
+        },
+        {
+            "GroupId": "sg-0a3fa7eaf7303e069",
+            "IpPermissionsEgress": [
+                {
+                    "IpProtocol": "-1",
+                    "UserIdGroupPairs": [],
+                    "IpRanges": [
+                        {
+                            "CidrIp": "0.0.0.0/0"
+                        }
+                    ],
+                    "Ipv6Ranges": [],
+                    "PrefixListIds": []
+                }
+            ],
+            "VpcId": "vpc-00889353775d6c950",
+            "SecurityGroupArn": "arn:aws:ec2:us-east-1:597936860595:security-group/sg-0a3fa7eaf7303e069",
+            "OwnerId": "597936860595",
+            "GroupName": "default",
+            "Description": "default VPC security group",
+            "IpPermissions": [
+                {
+                    "IpProtocol": "-1",
+                    "UserIdGroupPairs": [
+                        {
+                            "UserId": "597936860595",
+                            "GroupId": "sg-0a3fa7eaf7303e069"
+                        }
+                    ],
+                    "IpRanges": [],
                     "Ipv6Ranges": [],
                     "PrefixListIds": []
                 }

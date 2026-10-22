@@ -1,0 +1,15 @@
+Verificacion UTC: 2026-10-22T22:19:59Z
+VPC restantes: 0
+Subredes restantes: 0
+Instancias activas restantes: 0
+Llaves restantes: 0
+Gateway restante: 0
+---------------------------------------
+|          DescribeInstances          |
++----------------------+--------------+
+|  i-0e90bf08327f7f06e |  terminated  |
+|  i-003607ff81753a21a |  terminated  |
+|  i-0835e1c56db5f935a |  terminated  |
+|  i-0549c393197876ce8 |  terminated  |
+|  i-0df35f9f630a8701a |  terminated  |
++----------------------+--------------+

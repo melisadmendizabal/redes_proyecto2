@@ -4,10 +4,10 @@
             "Attachments": [
                 {
                     "State": "available",
-                    "VpcId": "vpc-0be4934b0720d41e3"
+                    "VpcId": "vpc-00889353775d6c950"
                 }
             ],
-            "InternetGatewayId": "igw-05cfe9adf4052c2eb",
+            "InternetGatewayId": "igw-012961e90a091737f",
             "OwnerId": "597936860595",
             "Tags": [
                 {

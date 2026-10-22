@@ -1,0 +1,11 @@
+==> Guardando configuracion en /home/cloudshell-user/evidencia-aws
+Se borrara TODA la VPC vpc-00889353775d6c950 y sus recursos. Escribe SI para continuar: ==> Terminando instancias
+==> Borrando subredes
+==> Borrando NACL, tablas de rutas y Security Group del proyecto
+{
+    "Return": true,
+    "GroupId": "sg-00203825199f203cb"
+}
+==> Borrando Internet Gateway
+==> Borrando VPC y llave SSH
+==> Listo. Verifica en la consola (EC2 y VPC) que no quede nada en esta region.

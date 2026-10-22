@@ -1,0 +1,22 @@
+==> Region: us-east-1 | Zona: us-east-1a | Instancia: t3.micro
+==> Creando VPC 10.10.0.0/24
+==> Creando subredes
+==> Creando Internet Gateway y tabla de rutas publica
+==> Creando Network ACL nacl-internas (aislamiento de Visitas)
+==> Creando Security Group sg-startup
+==> Creando llave SSH proyecto-key
+==> Lanzando instancias
+==> Esperando a que arranquen (1-2 min)
+
+==> Listo. Instancias:
+------------------------------------------------------------------
+|                        DescribeInstances                       |
++------------------+--------------+------------------+-----------+
+|  vm-ventas-2     |  10.10.0.4   |  3.239.213.73    |  t3.micro |
+|  vm-datacenter-1 |  10.10.0.103 |  None            |  t3.micro |
+|  vm-ventas-1     |  10.10.0.27  |  13.223.243.134  |  t3.micro |
+|  vm-ti-1         |  10.10.0.52  |  None            |  t3.micro |
+|  vm-visitas-1    |  10.10.0.81  |  100.53.105.193  |  t3.micro |
++------------------+--------------+------------------+-----------+
+
+Siguiente paso: bash pruebas-aws.sh
