@@ -5,7 +5,7 @@
 # y EC2 de prueba. Ejecutar en AWS CloudShell.
 #
 # Uso:   bash deploy-aws.sh
-# Opcional: REGION=us-east-2 ITYPE=t3.small BONUS=0 bash deploy-aws.sh
+# Opcional: REGION=us-east-2 ITYPE=t3.small BONUS=0 INTERNAS=0 bash deploy-aws.sh
 # =====================================================================
 set -euo pipefail
 export AWS_PAGER=""
@@ -15,6 +15,7 @@ REGION="${REGION:-us-east-1}"
 export AWS_DEFAULT_REGION="$REGION"
 ITYPE="${ITYPE:-t3.micro}"       # elegible para el Free plan (x86)
 BONUS="${BONUS:-1}"              # 1 = crea vm-visitas-1 para demostrar aislamiento
+INTERNAS="${INTERNAS:-1}"        # 1 = crea vm-ti-1 y vm-datacenter-1 (privadas, se accede por salto via vm-ventas-1)
 PROJ="proyecto-redes"
 KEY="proyecto-key"
 KEYFILE="$HOME/proyecto-key.pem"
@@ -60,7 +61,7 @@ SN_TI=$(mk_subnet     snet-ti         "$CIDR_TI")
 SN_VISITAS=$(mk_subnet snet-visitas   "$CIDR_VISITAS")
 SN_DC=$(mk_subnet     snet-datacenter "$CIDR_DC")
 
-# ---------- 3. Internet Gateway y ruta publica (solo Ventas y Visitas, donde hay VMs de prueba) ----------
+# ---------- 3. Internet Gateway y ruta publica (solo Ventas y Visitas, con VMs accesibles por SSH directo) ----------
 echo "==> Creando Internet Gateway y tabla de rutas publica"
 IGW=$(aws ec2 create-internet-gateway --query InternetGateway.InternetGatewayId --output text)
 tag "$IGW" igw-startup
@@ -92,15 +93,15 @@ for S in "$SN_VENTAS" "$SN_TI" "$SN_DC"; do
   aws ec2 replace-network-acl-association --association-id "$ASSOC" --network-acl-id "$NACL" >/dev/null
 done
 
-# ---------- 5. Security Group: SSH desde CloudShell + ICMP dentro de la VPC ----------
+# ---------- 5. Security Group: SSH desde CloudShell + SSH e ICMP dentro de la VPC ----------
 echo "==> Creando Security Group sg-startup"
 MYIP=$(curl -s https://checkip.amazonaws.com | tr -d '[:space:]')
 SG=$(aws ec2 create-security-group --group-name startup-sg \
-      --description "SSH desde CloudShell e ICMP interno" --vpc-id "$VPC" \
+      --description "SSH desde CloudShell, SSH e ICMP internos" --vpc-id "$VPC" \
       --query GroupId --output text)
 tag "$SG" sg-startup
 aws ec2 authorize-security-group-ingress --group-id "$SG" --ip-permissions \
-  "IpProtocol=tcp,FromPort=22,ToPort=22,IpRanges=[{CidrIp=${MYIP}/32,Description=ssh-cloudshell}]" \
+  "IpProtocol=tcp,FromPort=22,ToPort=22,IpRanges=[{CidrIp=${MYIP}/32,Description=ssh-cloudshell},{CidrIp=${VPC_CIDR},Description=ssh-salto-vpc}]" \
   "IpProtocol=icmp,FromPort=-1,ToPort=-1,IpRanges=[{CidrIp=${VPC_CIDR},Description=icmp-vpc}]" >/dev/null
 
 # ---------- 6. Llave SSH (se guarda en ~/ de CloudShell, que es persistente) ----------
@@ -128,6 +129,10 @@ echo "==> Lanzando instancias"
 IDS=()
 IDS+=("$(run_vm vm-ventas-1 "$SN_VENTAS")")
 IDS+=("$(run_vm vm-ventas-2 "$SN_VENTAS")")
+if [ "$INTERNAS" = "1" ]; then
+  IDS+=("$(run_vm vm-ti-1 "$SN_TI")")
+  IDS+=("$(run_vm vm-datacenter-1 "$SN_DC")")
+fi
 if [ "$BONUS" = "1" ]; then
   IDS+=("$(run_vm vm-visitas-1 "$SN_VISITAS")")
 fi
