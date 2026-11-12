@@ -27,6 +27,7 @@ aws ec2 describe-network-acls --filters "$F"                 > "$OUT/network-acl
 aws ec2 describe-security-groups --filters "$F"              > "$OUT/security-groups.json"
 aws ec2 describe-internet-gateways --filters "Name=attachment.vpc-id,Values=$VPC" > "$OUT/internet-gateway.json"
 aws ec2 describe-instances --filters "$F"                    > "$OUT/instancias.json"
+aws ec2 describe-vpc-endpoints --filters "$F"                > "$OUT/vpc-endpoints.json"
 
 read -r -p "Se borrara TODA la VPC $VPC y sus recursos. Escribe SI para continuar: " R
 [ "$R" = "SI" ] || { echo "Cancelado."; exit 0; }
@@ -38,6 +39,12 @@ IDS=$(aws ec2 describe-instances --filters "$F" \
 if [ -n "$IDS" ]; then
   aws ec2 terminate-instances --instance-ids $IDS >/dev/null
   aws ec2 wait instance-terminated --instance-ids $IDS
+fi
+
+echo "==> Borrando endpoints de la VPC (S3 de la intranet)"
+EPS=$(aws ec2 describe-vpc-endpoints --filters "$F" --query "VpcEndpoints[].VpcEndpointId" --output text)
+if [ -n "$EPS" ]; then
+  aws ec2 delete-vpc-endpoints --vpc-endpoint-ids $EPS >/dev/null
 fi
 
 echo "==> Borrando subredes"
