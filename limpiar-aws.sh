@@ -28,6 +28,7 @@ aws ec2 describe-security-groups --filters "$F"              > "$OUT/security-gr
 aws ec2 describe-internet-gateways --filters "Name=attachment.vpc-id,Values=$VPC" > "$OUT/internet-gateway.json"
 aws ec2 describe-instances --filters "$F"                    > "$OUT/instancias.json"
 aws ec2 describe-vpc-endpoints --filters "$F"                > "$OUT/vpc-endpoints.json"
+aws ec2 describe-instance-connect-endpoints --filters "$F"   > "$OUT/instance-connect-endpoints.json"
 
 read -r -p "Se borrara TODA la VPC $VPC y sus recursos. Escribe SI para continuar: " R
 [ "$R" = "SI" ] || { echo "Cancelado."; exit 0; }
@@ -46,6 +47,18 @@ EPS=$(aws ec2 describe-vpc-endpoints --filters "$F" --query "VpcEndpoints[].VpcE
 if [ -n "$EPS" ]; then
   aws ec2 delete-vpc-endpoints --vpc-endpoint-ids $EPS >/dev/null
 fi
+
+echo "==> Borrando EC2 Instance Connect Endpoint (subred TI)"
+for E in $(aws ec2 describe-instance-connect-endpoints --filters "$F" \
+           --query "InstanceConnectEndpoints[?State!='delete-complete'].InstanceConnectEndpointId" --output text); do
+  aws ec2 delete-instance-connect-endpoint --instance-connect-endpoint-id "$E" >/dev/null
+  for _ in $(seq 1 60); do   # su interfaz de red impide borrar la subred TI hasta que termine
+    ESTADO=$(aws ec2 describe-instance-connect-endpoints --instance-connect-endpoint-ids "$E" \
+             --query "InstanceConnectEndpoints[0].State" --output text 2>/dev/null || echo delete-complete)
+    case "$ESTADO" in delete-complete|None) break ;; esac
+    sleep 10
+  done
+done
 
 echo "==> Borrando subredes"
 for S in $(aws ec2 describe-subnets --filters "$F" --query "Subnets[].SubnetId" --output text); do
