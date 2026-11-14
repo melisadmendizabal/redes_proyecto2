@@ -1,0 +1,46 @@
+{
+    "InstanceConnectEndpoints": [
+        {
+            "OwnerId": "597936860595",
+            "InstanceConnectEndpointId": "eice-098fcb4f28d86bd70",
+            "InstanceConnectEndpointArn": "arn:aws:ec2:us-east-1:597936860595:instance-connect-endpoint/eice-098fcb4f28d86bd70",
+            "State": "create-complete",
+            "StateMessage": "",
+            "DnsName": "eice-098fcb4f28d86bd70.b67b86ba.ec2-instance-connect-endpoint.us-east-1.amazonaws.com",
+            "FipsDnsName": "eice-098fcb4f28d86bd70.b67b86ba.fips.ec2-instance-connect-endpoint.us-east-1.amazonaws.com",
+            "NetworkInterfaceIds": [
+                "eni-0f729c0241c5549a0"
+            ],
+            "VpcId": "vpc-02251b0b1ccc6414f",
+            "AvailabilityZone": "us-east-1a",
+            "CreatedAt": "2026-11-14T01:40:44+00:00",
+            "SubnetId": "subnet-007c38ec5d70c6207",
+            "PreserveClientIp": false,
+            "SecurityGroupIds": [
+                "sg-0c181b9ef242d34f7"
+            ],
+            "Tags": [
+                {
+                    "Key": "Project",
+                    "Value": "proyecto-redes"
+                },
+                {
+                    "Key": "Name",
+                    "Value": "eice-ti"
+                }
+            ],
+            "IpAddressType": "ipv4",
+            "PublicDnsNames": {
+                "Ipv4": {
+                    "DnsName": "eice-098fcb4f28d86bd70.b67b86ba.ec2-instance-connect-endpoint.us-east-1.amazonaws.com",
+                    "FipsDnsName": "eice-098fcb4f28d86bd70.b67b86ba.fips.ec2-instance-connect-endpoint.us-east-1.amazonaws.com"
+                },
+                "Dualstack": {
+                    "DnsName": "eice-098fcb4f28d86bd70.b67b86ba.ec2-instance-connect-endpoint.us-east-1.api.aws",
+                    "FipsDnsName": "eice-098fcb4f28d86bd70.b67b86ba.fips.ec2-instance-connect-endpoint.us-east-1.api.aws"
+                }
+            },
+            "AvailabilityZoneId": "use1-az1"
+        }
+    ]
+}

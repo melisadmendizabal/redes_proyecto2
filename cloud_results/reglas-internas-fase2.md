@@ -101,7 +101,26 @@ Las reglas de la intranet son del grupo `intranet-rrhh-sg` (ver `intranet-fase2.
 | 14 | `vm-visitas-1` → intranet | Bloqueado |
 | 15 | CloudShell (Internet) → intranet | Bloqueado |
 
-Las pruebas 2 y 7 muestran el comportamiento con estado. TI hace ping a Ventas y recibe la respuesta, pero Ventas no puede hacer ping a TI.
+La prueba 6 (DMZ) solo aparece cuando ya existe una VM en `10.10.0.112/28`. Sin DMZ, las pruebas siguientes se corren un número hacia arriba.
+
+### Resultados de la ejecución (13 de noviembre de 2026)
+
+`reglas-internas-fase2.sh` creó `eice-ti-sg` (`sg-0c181b9ef242d34f7`), el endpoint `eice-ti` (`eice-098fcb4f28d86bd70`), `ti-sg` (`sg-01d2d2e9490ce9290`) y `nacl-ti` (`acl-08db1530150c8d506`). `vm-ti-1` (`i-03359ed63579026da`, `10.10.0.60`) pasó de `startup-sg` a `ti-sg`. Todavía no había VM en la DMZ, así que se corrieron 14 pruebas. Todas dieron el resultado esperado ([registro completo](pruebas-reglas-fase2.log)):
+
+| Prueba del log | Origen → destino | Resultado |
+|---|---|---|
+| 1 | Configuración de `vm-ti-1`, `ti-sg` y `nacl-ti` | Tablas mostradas |
+| 2–4 | `vm-ti-1` → Ventas, Data Center y Visitas (ping + TCP 22) | Responde / conexión abierta |
+| 5 | `vm-ti-1` → `http://rrhh.mansiondeldisfraz.local` | Resuelve a `10.10.0.101`, HTTP 200 |
+| 6–7 | `vm-ventas-1` y `vm-ventas-2` → `vm-ti-1` | 100 % de pérdida, sin conexión TCP 22 |
+| 8–9 | `vm-datacenter-1` y `vm-intranet-rrhh` → `vm-ti-1` | 100 % de pérdida, sin conexión TCP 22 |
+| 10 | `vm-visitas-1` → `vm-ti-1` | 100 % de pérdida, sin conexión TCP 22 |
+| 11 | `vm-ventas-1` → intranet por nombre | HTTP 200 |
+| 12 | `vm-datacenter-1` → intranet (`--resolve`) | HTTP 200. El nombre no resuelve porque el DNS solo acepta consultas de Ventas y TI |
+| 13 | `vm-visitas-1` → intranet | Timeout, HTTP 000 |
+| 14 | CloudShell (Internet) → intranet | No resuelve, timeout, HTTP 000 |
+
+Las pruebas 2 y 6 muestran el comportamiento con estado. TI hace ping a Ventas y recibe la respuesta, pero Ventas no puede hacer ping a TI.
 
 ## Revertir (si hiciera falta para una demo)
 

@@ -1,0 +1,191 @@
+vm-ventas-1      = 10.10.0.28
+vm-ti-1          = 10.10.0.60 (i-03359ed63579026da)
+vm-datacenter-1  = 10.10.0.109
+vm-visitas-1     = 10.10.0.84
+vm-intranet-rrhh = 10.10.0.101
+VM en la DMZ     = (todavia no hay)
+
+##### PRUEBA REGLAS 1: Configuracion de firewall de TI (Security Group + NACL)
+------------------------------
+|      DescribeInstances     |
++----------------------------+
+|  vm-ti-1                   |
+|  subnet-007c38ec5d70c6207  |
+|  ti-sg                     |
++----------------------------+
+--------------------------------------------------------
+|                DescribeSecurityGroups                |
++------+-----+-----+-----------------+-----------------+
+|  tcp |  22 |  22 |  10.10.0.32/27  |  ssh-ti-y-eice  |
+|  icmp|  -1 |  -1 |  10.10.0.32/27  |  icmp-ti        |
++------+-----+-----+-----------------+-----------------+
+-------------------------------------------------------------------
+|                       DescribeNetworkAcls                       |
++-------+--------+-----+---------------+-------+---------+--------+
+|  100  |  allow |  6  |  10.10.0.0/24 |  1024 |  65535  |  None  |
+|  110  |  allow |  6  |  10.10.1.0/28 |  1024 |  65535  |  None  |
+|  120  |  allow |  17 |  10.10.1.0/28 |  1024 |  65535  |  None  |
+|  130  |  allow |  1  |  10.10.0.0/24 |  None |  None   |  0     |
+|  140  |  allow |  1  |  10.10.0.0/24 |  None |  None   |  3     |
+|  150  |  allow |  1  |  10.10.0.0/24 |  None |  None   |  11    |
+|  200  |  deny  |  -1 |  10.10.0.0/24 |  None |  None   |  None  |
+|  210  |  deny  |  -1 |  10.10.1.0/28 |  None |  None   |  None  |
+|  300  |  allow |  6  |  0.0.0.0/0    |  1024 |  65535  |  None  |
+|  32767|  deny  |  -1 |  0.0.0.0/0    |  None |  None   |  None  |
++-------+--------+-----+---------------+-------+---------+--------+
+
+##### PRUEBA REGLAS 2: vm-ti-1 -> vm-ventas-1 (TI -> Ventas, DEBE funcionar)
+ip-10-10-0-60.ec2.internal
+10.10.0.60
+--- ICMP hacia 10.10.0.28
+PING 10.10.0.28 (10.10.0.28) 56(84) bytes of data.
+64 bytes from 10.10.0.28: icmp_seq=1 ttl=127 time=0.218 ms
+64 bytes from 10.10.0.28: icmp_seq=2 ttl=127 time=0.250 ms
+64 bytes from 10.10.0.28: icmp_seq=3 ttl=127 time=0.234 ms
+
+--- 10.10.0.28 ping statistics ---
+3 packets transmitted, 3 received, 0% packet loss, time 2116ms
+rtt min/avg/max/mdev = 0.218/0.234/0.250/0.013 ms
+RESULTADO ICMP: responde
+--- TCP 22 hacia 10.10.0.28
+RESULTADO TCP 22: conexion abierta
+
+##### PRUEBA REGLAS 3: vm-ti-1 -> vm-datacenter-1 (TI -> Data Center, DEBE funcionar)
+ip-10-10-0-60.ec2.internal
+10.10.0.60
+--- ICMP hacia 10.10.0.109
+PING 10.10.0.109 (10.10.0.109) 56(84) bytes of data.
+64 bytes from 10.10.0.109: icmp_seq=1 ttl=127 time=0.567 ms
+64 bytes from 10.10.0.109: icmp_seq=2 ttl=127 time=0.225 ms
+64 bytes from 10.10.0.109: icmp_seq=3 ttl=127 time=0.217 ms
+
+--- 10.10.0.109 ping statistics ---
+3 packets transmitted, 3 received, 0% packet loss, time 2046ms
+rtt min/avg/max/mdev = 0.217/0.336/0.567/0.163 ms
+RESULTADO ICMP: responde
+--- TCP 22 hacia 10.10.0.109
+RESULTADO TCP 22: conexion abierta
+
+##### PRUEBA REGLAS 4: vm-ti-1 -> vm-visitas-1 (TI -> Visitas, DEBE funcionar)
+ip-10-10-0-60.ec2.internal
+10.10.0.60
+--- ICMP hacia 10.10.0.84
+PING 10.10.0.84 (10.10.0.84) 56(84) bytes of data.
+64 bytes from 10.10.0.84: icmp_seq=1 ttl=127 time=0.553 ms
+64 bytes from 10.10.0.84: icmp_seq=2 ttl=127 time=0.186 ms
+64 bytes from 10.10.0.84: icmp_seq=3 ttl=127 time=0.177 ms
+
+--- 10.10.0.84 ping statistics ---
+3 packets transmitted, 3 received, 0% packet loss, time 2080ms
+rtt min/avg/max/mdev = 0.177/0.305/0.553/0.175 ms
+RESULTADO ICMP: responde
+--- TCP 22 hacia 10.10.0.84
+RESULTADO TCP 22: conexion abierta
+
+##### PRUEBA REGLAS 5: vm-ti-1 -> http://rrhh.mansiondeldisfraz.local (TI -> intranet, DEBE funcionar)
+ip-10-10-0-60.ec2.internal
+10.10.0.60
+--- DNS
+10.10.0.101     rrhh.mansiondeldisfraz.local
+--- HTTP
+HTTP 200
+RESULTADO: intranet accesible
+
+##### PRUEBA REGLAS 6: vm-ventas-1 -> vm-ti-1 (Ventas -> TI, DEBE FALLAR)
+ip-10-10-0-28.ec2.internal
+10.10.0.28
+--- ICMP hacia 10.10.0.60
+PING 10.10.0.60 (10.10.0.60) 56(84) bytes of data.
+
+--- 10.10.0.60 ping statistics ---
+3 packets transmitted, 0 received, 100% packet loss, time 2088ms
+
+RESULTADO ICMP: sin respuesta (bloqueado)
+--- TCP 22 hacia 10.10.0.60
+RESULTADO TCP 22: sin conexion (bloqueado)
+
+##### PRUEBA REGLAS 7: vm-ventas-2 -> vm-ti-1 (Ventas -> TI, DEBE FALLAR)
+ip-10-10-0-21.ec2.internal
+10.10.0.21
+--- ICMP hacia 10.10.0.60
+PING 10.10.0.60 (10.10.0.60) 56(84) bytes of data.
+
+--- 10.10.0.60 ping statistics ---
+3 packets transmitted, 0 received, 100% packet loss, time 2062ms
+
+RESULTADO ICMP: sin respuesta (bloqueado)
+
+##### PRUEBA REGLAS 8: vm-datacenter-1 -> vm-ti-1 (Data Center -> TI, DEBE FALLAR)
+ip-10-10-0-109.ec2.internal
+10.10.0.109
+--- ICMP hacia 10.10.0.60
+PING 10.10.0.60 (10.10.0.60) 56(84) bytes of data.
+
+--- 10.10.0.60 ping statistics ---
+3 packets transmitted, 0 received, 100% packet loss, time 2047ms
+
+RESULTADO ICMP: sin respuesta (bloqueado)
+--- TCP 22 hacia 10.10.0.60
+RESULTADO TCP 22: sin conexion (bloqueado)
+
+##### PRUEBA REGLAS 9: vm-intranet-rrhh -> vm-ti-1 (servidor del Data Center -> TI, DEBE FALLAR)
+ip-10-10-0-101.ec2.internal
+10.10.0.101
+--- ICMP hacia 10.10.0.60
+PING 10.10.0.60 (10.10.0.60) 56(84) bytes of data.
+
+--- 10.10.0.60 ping statistics ---
+3 packets transmitted, 0 received, 100% packet loss, time 2044ms
+
+RESULTADO ICMP: sin respuesta (bloqueado)
+--- TCP 22 hacia 10.10.0.60
+RESULTADO TCP 22: sin conexion (bloqueado)
+
+##### PRUEBA REGLAS 10: vm-visitas-1 -> vm-ti-1 (Visitas -> TI, DEBE FALLAR)
+ip-10-10-0-84.ec2.internal
+10.10.0.84
+--- ICMP hacia 10.10.0.60
+PING 10.10.0.60 (10.10.0.60) 56(84) bytes of data.
+
+--- 10.10.0.60 ping statistics ---
+3 packets transmitted, 0 received, 100% packet loss, time 2091ms
+
+RESULTADO ICMP: sin respuesta (bloqueado)
+--- TCP 22 hacia 10.10.0.60
+RESULTADO TCP 22: sin conexion (bloqueado)
+
+##### PRUEBA REGLAS 11: vm-ventas-1 -> http://rrhh.mansiondeldisfraz.local (Ventas -> intranet, DEBE funcionar)
+ip-10-10-0-28.ec2.internal
+10.10.0.28
+--- DNS
+10.10.0.101     rrhh.mansiondeldisfraz.local
+--- HTTP
+HTTP 200
+RESULTADO: intranet accesible
+
+##### PRUEBA REGLAS 12: vm-datacenter-1 -> intranet (Data Center -> intranet, DEBE funcionar)
+ip-10-10-0-109.ec2.internal
+10.10.0.109
+--- DNS
+rrhh.mansiondeldisfraz.local no resuelve
+--- HTTP
+HTTP 200
+RESULTADO: intranet accesible
+
+##### PRUEBA REGLAS 13: vm-visitas-1 -> intranet (Visitas -> intranet, DEBE FALLAR)
+ip-10-10-0-84.ec2.internal
+10.10.0.84
+--- DNS
+rrhh.mansiondeldisfraz.local no resuelve
+--- HTTP
+curl: (28) Connection timed out after 5002 milliseconds
+HTTP 000
+RESULTADO: sin respuesta (bloqueado)
+
+##### PRUEBA REGLAS 14: Internet (CloudShell) -> intranet (DEBE FALLAR)
+Origen: CloudShell con IP publica 3.82.56.79
+IP publica de vm-intranet-rrhh: None
+rrhh.mansiondeldisfraz.local no resuelve en Internet
+curl: (28) Connection timed out after 5002 milliseconds
+HTTP 000
+RESULTADO: sin respuesta, la intranet no es alcanzable desde Internet

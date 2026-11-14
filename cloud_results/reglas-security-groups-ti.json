@@ -1,0 +1,100 @@
+{
+    "SecurityGroups": [
+        {
+            "GroupId": "sg-01d2d2e9490ce9290",
+            "IpPermissionsEgress": [
+                {
+                    "IpProtocol": "-1",
+                    "UserIdGroupPairs": [],
+                    "IpRanges": [
+                        {
+                            "CidrIp": "0.0.0.0/0"
+                        }
+                    ],
+                    "Ipv6Ranges": [],
+                    "PrefixListIds": []
+                }
+            ],
+            "Tags": [
+                {
+                    "Key": "Name",
+                    "Value": "sg-ti"
+                },
+                {
+                    "Key": "Project",
+                    "Value": "proyecto-redes"
+                }
+            ],
+            "VpcId": "vpc-02251b0b1ccc6414f",
+            "SecurityGroupArn": "arn:aws:ec2:us-east-1:597936860595:security-group/sg-01d2d2e9490ce9290",
+            "OwnerId": "597936860595",
+            "GroupName": "ti-sg",
+            "Description": "TI: entrada solo desde la subred TI (incluye el Instance Connect Endpoint)",
+            "IpPermissions": [
+                {
+                    "IpProtocol": "tcp",
+                    "FromPort": 22,
+                    "ToPort": 22,
+                    "UserIdGroupPairs": [],
+                    "IpRanges": [
+                        {
+                            "Description": "ssh-ti-y-eice",
+                            "CidrIp": "10.10.0.32/27"
+                        }
+                    ],
+                    "Ipv6Ranges": [],
+                    "PrefixListIds": []
+                },
+                {
+                    "IpProtocol": "icmp",
+                    "FromPort": -1,
+                    "ToPort": -1,
+                    "UserIdGroupPairs": [],
+                    "IpRanges": [
+                        {
+                            "Description": "icmp-ti",
+                            "CidrIp": "10.10.0.32/27"
+                        }
+                    ],
+                    "Ipv6Ranges": [],
+                    "PrefixListIds": []
+                }
+            ]
+        },
+        {
+            "GroupId": "sg-0c181b9ef242d34f7",
+            "IpPermissionsEgress": [
+                {
+                    "IpProtocol": "tcp",
+                    "FromPort": 22,
+                    "ToPort": 22,
+                    "UserIdGroupPairs": [],
+                    "IpRanges": [
+                        {
+                            "Description": "ssh-admin-vpc",
+                            "CidrIp": "10.10.0.0/24"
+                        }
+                    ],
+                    "Ipv6Ranges": [],
+                    "PrefixListIds": []
+                }
+            ],
+            "Tags": [
+                {
+                    "Key": "Name",
+                    "Value": "sg-eice-ti"
+                },
+                {
+                    "Key": "Project",
+                    "Value": "proyecto-redes"
+                }
+            ],
+            "VpcId": "vpc-02251b0b1ccc6414f",
+            "SecurityGroupArn": "arn:aws:ec2:us-east-1:597936860595:security-group/sg-0c181b9ef242d34f7",
+            "OwnerId": "597936860595",
+            "GroupName": "eice-ti-sg",
+            "Description": "EC2 Instance Connect Endpoint de TI: solo SSH saliente hacia la VPC",
+            "IpPermissions": []
+        }
+    ]
+}
