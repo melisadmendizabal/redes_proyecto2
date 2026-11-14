@@ -105,7 +105,7 @@ Antes de desplegar, el script se probó en un contenedor `amazonlinux:2023` con 
 | # | Origen → destino | Esperado |
 |---|---|---|
 | 1 | Configuración de `snet-dmz`, `rt-dmz`, `nacl-dmz` y `dmz-web-sg` | Tablas |
-| 2 | `vm-dmz-web`: `nginx -t`, timer de renovación, `ss -tulpn` y certificado | Hacia la red solo escuchan 22, 80 y 443 |
+| 2 | `vm-dmz-web`: `nginx -t`, timer de renovación, `ss -tulpn` y certificado | En TCP solo escuchan 22, 80 y 443 |
 | 3 | Internet: DNS de `mansiondeldisfraz.duckdns.org` | Coincide con la Elastic IP |
 | 4 | Internet → `http://` | `301` hacia `https://` |
 | 5 | Internet → `https://` | `200`, certificado válido de Let's Encrypt, TLS 1.3 |
@@ -122,7 +122,58 @@ Antes de desplegar, el script se probó en un contenedor `amazonlinux:2023` con 
 | 19 | `vm-dmz-web` → DNS interno `10.10.1.4` | No resuelve, TCP 53 bloqueado |
 | 20 | `vm-dmz-web` → Internet | HTTPS sí (muestra la Elastic IP); HTTP 80 bloqueado |
 
-La prueba 6 de `pruebas-reglas-fase2.sh` (persona 3), `vm-ti-1` → DMZ puerto 80, ahora aplica y debe funcionar.
+La prueba 6 de `pruebas-reglas-fase2.sh` (persona 3), `vm-ti-1` → DMZ puerto 80, ahora aplica y debe funcionar. La prueba 8 de este script ya la cubre.
+
+### Resultados de la ejecución (14 de noviembre de 2026)
+
+`desplegar-dmz-fase2.sh` creó estos recursos en `vpc-02251b0b1ccc6414f` ([registro](dmz-despliegue.log)):
+- `snet-dmz` (`subnet-09af77442308c35b2`)
+- `rt-dmz` (`rtb-05485a69996d5a396`, con salida por `igw-09a71c300f15a3667`)
+- `nacl-dmz` (`acl-0cebd51f250175bdd`)
+- `dmz-web-sg` (`sg-08c666b480b3ad6af`)
+- la Elastic IP `32.200.48.146` (`eipalloc-053f4fbb2d1ce3bbf`)
+- `vm-dmz-web` (`i-01e284ea226a31eec`, `10.10.0.116`)
+
+La configuración exportada está en los `dmz-*.json` de esta carpeta.
+
+`habilitar-https-fase2.sh` instaló certbot 2.6.0 desde los repositorios de AL2023 ([registro](dmz-https.log)). La prueba contra staging salió bien y luego se emitió el certificado real:
+- Sujeto: `CN=mansiondeldisfraz.duckdns.org`.
+- Emisor: `Let's Encrypt, CN=YE2`.
+- Vigencia: del 14-11-2026 al 12-02-2027.
+- Clave ECDSA.
+
+La conexión negocia TLS 1.3 (`TLS_AES_256_GCM_SHA384`, x25519). Las 20 pruebas dieron el resultado esperado ([registro completo](pruebas-dmz-fase2.log)):
+
+| Prueba | Origen → destino | Resultado |
+|---|---|---|
+| 1 | Configuración | Tablas de `snet-dmz`, `rt-dmz`, `nacl-dmz` y `dmz-web-sg` |
+| 2 | `vm-dmz-web` | `nginx -t` correcto y `certbot-renew.timer` programado. En TCP solo escuchan sshd (22) y nginx (80/443). En UDP solo el cliente DHCP de `systemd-networkd` (68 y 546) y `chronyd` en localhost (323) |
+| 3 | Internet: DNS | `mansiondeldisfraz.duckdns.org` → `32.200.48.146`, igual a la Elastic IP |
+| 4 | Internet → `http://` | `301 Moved Permanently`, `Location: https://mansiondeldisfraz.duckdns.org/` |
+| 5 | Internet → `https://` | `200`, certificado válido (`ssl_verify_result=0`), HSTS, CSP, `X-Frame-Options`; `Server: nginx` sin versión |
+| 6 | Internet → IP directa | HTTP `301` al dominio; HTTPS rechazado (`tlsv1 unrecognized name`) |
+| 7 | Internet → TCP 22 | Sin conexión |
+| 8–9 | `vm-ti-1` → DMZ | Ping 0 % de pérdida; TCP 22, 80 y 443 abiertos; HTTP `301` y HTTPS `200` por IP privada |
+| 10 | `vm-ventas-1` → DMZ (privada) | 100 % de pérdida; 22, 80 y 443 sin conexión |
+| 11 | `vm-ventas-1` → dominio | HTTPS `200` |
+| 12 | `vm-visitas-1` → DMZ (privada) | 100 % de pérdida; 22, 80 y 443 sin conexión |
+| 13 | `vm-visitas-1` → dominio | HTTPS `200` |
+| 14 | `vm-datacenter-1` → DMZ (privada) | 100 % de pérdida; 22, 80 y 443 sin conexión |
+| 15–17 | `vm-dmz-web` → TI, Ventas, Data Center | 100 % de pérdida; TCP 22 sin conexión |
+| 18 | `vm-dmz-web` → intranet | Timeout, HTTP `000` |
+| 19 | `vm-dmz-web` → DNS interno | `rrhh.mansiondeldisfraz.local` no resuelve; TCP 53 sin conexión |
+| 20 | `vm-dmz-web` → Internet | HTTPS sale y `checkip` devuelve `32.200.48.146`; HTTP 80 saliente bloqueado |
+
+Las pruebas 11 y 13 confirman cómo funciona el Internet Gateway: Ventas y Visitas llegan a la web pública por la Elastic IP con su propia IP pública. Por eso la regla 190 de `nacl-dmz`, que niega `10.10.0.0/24`, no las afecta. Las pruebas 10 y 12 muestran que, por red privada, esa misma regla sí las bloquea.
+
+Por fuera de AWS, desde una conexión residencial, se repitieron las pruebas de Internet con el mismo resultado:
+- `301` a HTTPS y `200` con TLS 1.3.
+- Rechazo por IP y rechazo de TLS 1.1.
+- Puerto 22 cerrado.
+
+En ese momento la cuenta tenía el plan gratuito (`FREE`) con US$79.68 de créditos.
+
+Capturas en [`capturas-dmz/`](capturas-dmz/): el registro de DuckDNS apuntando a la Elastic IP y el sitio en el navegador con conexión segura.
 
 ## Costos
 
@@ -143,7 +194,7 @@ En total son unos US$0.39 al día, que salen de la capa gratuita o de los crédi
   ssh -i ~/proyecto-key.pem -o ProxyCommand='aws ec2-instance-connect open-tunnel --instance-id %h' ec2-user@<instance-id de vm-dmz-web>
   ```
 
-- **Hardening (persona 5):** en `vm-dmz-web` deben quedar abiertos solo el 22 (sshd), el 80 y el 443 (nginx). Se verifica con `sudo ss -tulpn`; la salida "antes" está en la prueba 2 del registro.
+- **Hardening (persona 5):** en `vm-dmz-web` deben quedar abiertos solo el 22 (sshd), el 80 y el 443 (nginx). Se verifica con `sudo ss -tulpn`; la salida "antes" está en la prueba 2 de `pruebas-dmz-fase2.log`. Ahí también aparecen el cliente DHCP (UDP 68 y 546) y `chronyd` en localhost: son normales y no hay que cerrarlos. `sshd` escucha en IPv4 e IPv6, pero la VPC no tiene IPv6.
   - Si se activa un firewall en el sistema operativo, el 80 y el 443 deben quedar abiertos a todo Internet, y el 22 solo para `10.10.0.32/27`.
   - No cerrar el 80: lo usa Let's Encrypt para renovar el certificado.
   - No bloquear la salida 443: la necesitan `dnf` y certbot.

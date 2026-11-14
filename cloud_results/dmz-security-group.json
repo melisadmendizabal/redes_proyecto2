@@ -1,0 +1,96 @@
+{
+    "SecurityGroups": [
+        {
+            "GroupId": "sg-08c666b480b3ad6af",
+            "IpPermissionsEgress": [
+                {
+                    "IpProtocol": "tcp",
+                    "FromPort": 443,
+                    "ToPort": 443,
+                    "UserIdGroupPairs": [],
+                    "IpRanges": [
+                        {
+                            "Description": "https-saliente-dnf-y-acme",
+                            "CidrIp": "0.0.0.0/0"
+                        }
+                    ],
+                    "Ipv6Ranges": [],
+                    "PrefixListIds": []
+                }
+            ],
+            "Tags": [
+                {
+                    "Key": "Project",
+                    "Value": "proyecto-redes"
+                },
+                {
+                    "Key": "Name",
+                    "Value": "sg-dmz-web"
+                }
+            ],
+            "VpcId": "vpc-02251b0b1ccc6414f",
+            "SecurityGroupArn": "arn:aws:ec2:us-east-1:597936860595:security-group/sg-08c666b480b3ad6af",
+            "OwnerId": "597936860595",
+            "GroupName": "dmz-web-sg",
+            "Description": "Web publica DMZ: HTTP y HTTPS desde Internet, SSH e ICMP solo desde TI, salida solo HTTPS",
+            "IpPermissions": [
+                {
+                    "IpProtocol": "tcp",
+                    "FromPort": 80,
+                    "ToPort": 80,
+                    "UserIdGroupPairs": [],
+                    "IpRanges": [
+                        {
+                            "Description": "http-publico-redireccion-y-acme",
+                            "CidrIp": "0.0.0.0/0"
+                        }
+                    ],
+                    "Ipv6Ranges": [],
+                    "PrefixListIds": []
+                },
+                {
+                    "IpProtocol": "tcp",
+                    "FromPort": 22,
+                    "ToPort": 22,
+                    "UserIdGroupPairs": [],
+                    "IpRanges": [
+                        {
+                            "Description": "ssh-ti-y-eice",
+                            "CidrIp": "10.10.0.32/27"
+                        }
+                    ],
+                    "Ipv6Ranges": [],
+                    "PrefixListIds": []
+                },
+                {
+                    "IpProtocol": "icmp",
+                    "FromPort": -1,
+                    "ToPort": -1,
+                    "UserIdGroupPairs": [],
+                    "IpRanges": [
+                        {
+                            "Description": "icmp-ti",
+                            "CidrIp": "10.10.0.32/27"
+                        }
+                    ],
+                    "Ipv6Ranges": [],
+                    "PrefixListIds": []
+                },
+                {
+                    "IpProtocol": "tcp",
+                    "FromPort": 443,
+                    "ToPort": 443,
+                    "UserIdGroupPairs": [],
+                    "IpRanges": [
+                        {
+                            "Description": "https-publico",
+                            "CidrIp": "0.0.0.0/0"
+                        }
+                    ],
+                    "Ipv6Ranges": [],
+                    "PrefixListIds": []
+                }
+            ]
+        }
+    ]
+}

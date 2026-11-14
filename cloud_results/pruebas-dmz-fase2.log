@@ -1,0 +1,258 @@
+Dominio publico  = mansiondeldisfraz.duckdns.org
+vm-dmz-web       = 10.10.0.116 (i-01e284ea226a31eec) | Elastic IP 32.200.48.146
+vm-ti-1          = 10.10.0.60
+vm-ventas-1      = 10.10.0.28
+vm-datacenter-1  = 10.10.0.109
+vm-intranet-rrhh = 10.10.0.101
+
+##### PRUEBA DMZ 1: Configuracion de la DMZ (subred, rutas, NACL y Security Group)
+-----------------------------------------------------------------------------------
+|                                 DescribeSubnets                                 |
++----------+----------------------------+-----------------+-------------+---------+
+|  snet-dmz|  subnet-09af77442308c35b2  |  10.10.0.112/28 |  us-east-1a |  False  |
++----------+----------------------------+-----------------+-------------+---------+
+-----------------------------------------------------
+|                DescribeRouteTables                |
++---------------+-------------------------+---------+
+|  10.10.0.0/24 |  local                  |  active |
+|  0.0.0.0/0    |  igw-09a71c300f15a3667  |  active |
++---------------+-------------------------+---------+
+---------------------------------------------------------------------
+|                        DescribeNetworkAcls                        |
++-------+--------+--------+-----+-----------------+-------+---------+
+|  True |  100   |  allow |  6  |  10.10.0.32/27  |  1024 |  65535  |
+|  False|  100   |  allow |  6  |  10.10.0.32/27  |  22   |  22     |
+|  True |  110   |  allow |  1  |  10.10.0.32/27  |  None |  None   |
+|  False|  110   |  allow |  1  |  10.10.0.32/27  |  None |  None   |
+|  False|  120   |  allow |  6  |  10.10.0.32/27  |  80   |  80     |
+|  False|  130   |  allow |  6  |  10.10.0.32/27  |  443  |  443    |
+|  True |  190   |  deny  |  -1 |  10.10.0.0/24   |  None |  None   |
+|  False|  190   |  deny  |  -1 |  10.10.0.0/24   |  None |  None   |
+|  True |  200   |  deny  |  -1 |  10.10.1.0/28   |  None |  None   |
+|  False|  200   |  deny  |  -1 |  10.10.1.0/28   |  None |  None   |
+|  True |  300   |  allow |  6  |  0.0.0.0/0      |  443  |  443    |
+|  False|  300   |  allow |  6  |  0.0.0.0/0      |  80   |  80     |
+|  True |  310   |  allow |  6  |  0.0.0.0/0      |  1024 |  65535  |
+|  False|  310   |  allow |  6  |  0.0.0.0/0      |  443  |  443    |
+|  False|  320   |  allow |  6  |  0.0.0.0/0      |  1024 |  65535  |
+|  True |  32767 |  deny  |  -1 |  0.0.0.0/0      |  None |  None   |
+|  False|  32767 |  deny  |  -1 |  0.0.0.0/0      |  None |  None   |
++-------+--------+--------+-----+-----------------+-------+---------+
+----------------------------------------------------------------------------
+|                          DescribeSecurityGroups                          |
++------+------+------+----------------+------------------------------------+
+|  tcp |  80  |  80  |  0.0.0.0/0     |  http-publico-redireccion-y-acme   |
+|  tcp |  22  |  22  |  10.10.0.32/27 |  ssh-ti-y-eice                     |
+|  icmp|  -1  |  -1  |  10.10.0.32/27 |  icmp-ti                           |
+|  tcp |  443 |  443 |  0.0.0.0/0     |  https-publico                     |
++------+------+------+----------------+------------------------------------+
+-----------------------------------------------------------------
+|                    DescribeSecurityGroups                     |
++-----+------+------+------------+------------------------------+
+|  tcp|  443 |  443 |  0.0.0.0/0 |  https-saliente-dnf-y-acme   |
++-----+------+------+------------+------------------------------+
+
+##### PRUEBA DMZ 2: vm-dmz-web: Nginx, puertos en escucha y certificado
+ip-10-10-0-116.ec2.internal
+10.10.0.116 
+--- nginx -t
+nginx: the configuration file /etc/nginx/nginx.conf syntax is ok
+nginx: configuration file /etc/nginx/nginx.conf test is successful
+--- Servicios
+active
+Sat 2026-11-14 12:45:21 UTC 4h 20min left -                           -        certbot-renew.timer              certbot-renew.service
+--- Puertos en escucha (ss -tulpn)
+Netid State  Recv-Q Send-Q                  Local Address:Port Peer Address:PortProcess                                                                              
+udp   UNCONN 0      0                           127.0.0.1:323       0.0.0.0:*    users:(("chronyd",pid=1940,fd=5))                                                   
+udp   UNCONN 0      0                    10.10.0.116%ens5:68        0.0.0.0:*    users:(("systemd-network",pid=1733,fd=17))                                          
+udp   UNCONN 0      0                               [::1]:323          [::]:*    users:(("chronyd",pid=1940,fd=6))                                                   
+udp   UNCONN 0      0      [fe80::ff:d7ff:fef9:d9eb]%ens5:546          [::]:*    users:(("systemd-network",pid=1733,fd=19))                                          
+tcp   LISTEN 0      128                           0.0.0.0:22        0.0.0.0:*    users:(("sshd",pid=1911,fd=7))                                                      
+tcp   LISTEN 0      511                           0.0.0.0:80        0.0.0.0:*    users:(("nginx",pid=26429,fd=9),("nginx",pid=26428,fd=9),("nginx",pid=4863,fd=9))   
+tcp   LISTEN 0      511                           0.0.0.0:443       0.0.0.0:*    users:(("nginx",pid=26429,fd=16),("nginx",pid=26428,fd=16),("nginx",pid=4863,fd=16))
+tcp   LISTEN 0      128                              [::]:22           [::]:*    users:(("sshd",pid=1911,fd=8))                                                      
+--- Certificado
+subject=CN=mansiondeldisfraz.duckdns.org
+issuer=C=US, O=Let's Encrypt, CN=YE2
+notBefore=Nov 14 07:22:33 2026 GMT
+notAfter=Feb 12 07:22:32 2027 GMT
+
+##### PRUEBA DMZ 3: Internet -> DNS publico de mansiondeldisfraz.duckdns.org (DEBE resolver a la Elastic IP)
+mansiondeldisfraz.duckdns.org -> 32.200.48.146 | Elastic IP = 32.200.48.146
+RESULTADO DNS: coincide
+
+##### PRUEBA DMZ 4: Internet -> http://mansiondeldisfraz.duckdns.org (DEBE redirigir a HTTPS)
+HTTP/1.1 301 Moved Permanently
+Location: https://mansiondeldisfraz.duckdns.org/
+RESULTADO: HTTP 301 -> https://mansiondeldisfraz.duckdns.org/
+
+##### PRUEBA DMZ 5: Internet -> https://mansiondeldisfraz.duckdns.org (DEBE funcionar con certificado valido)
+* SSL connection using TLSv1.3 / TLS_AES_256_GCM_SHA384 / x25519 / id-ecPublicKey
+*   subject: CN=mansiondeldisfraz.duckdns.org
+*   expire date: Feb 12 07:22:32 2027 GMT
+*   issuer: C=US; O=Let's Encrypt; CN=YE2
+< HTTP/1.1 200 OK
+Server: nginx
+Strict-Transport-Security: max-age=31536000
+X-Content-Type-Options: nosniff
+X-Frame-Options: DENY
+Content-Security-Policy: default-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; base-uri 'none'; form-action 'none'; frame-ancestors 'none'
+RESULTADO: HTTPS 200, verificacion del certificado 0 (0 = valido)
+
+##### PRUEBA DMZ 6: Internet -> IP directa 32.200.48.146 (HTTP redirige al dominio, HTTPS sin nombre se rechaza)
+http://32.200.48.146/  -> HTTP 301 -> https://mansiondeldisfraz.duckdns.org/
+curl: (35) TLS connect error: error:0A000458:SSL routines::tlsv1 unrecognized name
+RESULTADO HTTPS por IP: handshake rechazado (ssl_reject_handshake)
+
+##### PRUEBA DMZ 7: Internet -> 32.200.48.146 puerto 22 (SSH NO expuesto, DEBE FALLAR)
+RESULTADO TCP 22: sin conexion (bloqueado)
+
+##### PRUEBA DMZ 8: vm-ti-1 -> DMZ 10.10.0.116 (TI administra la DMZ, DEBE funcionar)
+ip-10-10-0-60.ec2.internal
+10.10.0.60 
+--- ICMP hacia 10.10.0.116
+PING 10.10.0.116 (10.10.0.116) 56(84) bytes of data.
+64 bytes from 10.10.0.116: icmp_seq=1 ttl=127 time=0.513 ms
+64 bytes from 10.10.0.116: icmp_seq=2 ttl=127 time=0.225 ms
+64 bytes from 10.10.0.116: icmp_seq=3 ttl=127 time=0.184 ms
+
+--- 10.10.0.116 ping statistics ---
+3 packets transmitted, 3 received, 0% packet loss, time 2073ms
+rtt min/avg/max/mdev = 0.184/0.307/0.513/0.146 ms
+RESULTADO ICMP: responde
+RESULTADO TCP 22: conexion abierta
+RESULTADO TCP 80: conexion abierta
+RESULTADO TCP 443: conexion abierta
+
+##### PRUEBA DMZ 9: vm-ti-1 -> web de la DMZ por IP privada (DEBE funcionar)
+ip-10-10-0-60.ec2.internal
+10.10.0.60 
+--- HTTP hacia 10.10.0.116
+HTTP 301 -> https://mansiondeldisfraz.duckdns.org/
+RESULTADO HTTP: responde
+--- HTTPS hacia 10.10.0.116 como mansiondeldisfraz.duckdns.org
+HTTPS 200
+RESULTADO HTTPS: responde
+
+##### PRUEBA DMZ 10: vm-ventas-1 -> DMZ 10.10.0.116 por red privada (DEBE FALLAR)
+ip-10-10-0-28.ec2.internal
+10.10.0.28 
+--- ICMP hacia 10.10.0.116
+PING 10.10.0.116 (10.10.0.116) 56(84) bytes of data.
+
+--- 10.10.0.116 ping statistics ---
+3 packets transmitted, 0 received, 100% packet loss, time 2064ms
+
+RESULTADO ICMP: sin respuesta (bloqueado)
+RESULTADO TCP 22: sin conexion (bloqueado)
+RESULTADO TCP 80: sin conexion (bloqueado)
+RESULTADO TCP 443: sin conexion (bloqueado)
+
+##### PRUEBA DMZ 11: vm-ventas-1 -> https://mansiondeldisfraz.duckdns.org por Internet (DEBE funcionar)
+ip-10-10-0-28.ec2.internal
+10.10.0.28 
+--- DNS publico
+32.200.48.146   mansiondeldisfraz.duckdns.org
+--- HTTPS
+HTTPS 200
+RESULTADO: web publica accesible por su dominio
+
+##### PRUEBA DMZ 12: vm-visitas-1 -> DMZ 10.10.0.116 por red privada (DEBE FALLAR)
+ip-10-10-0-84.ec2.internal
+10.10.0.84 
+--- ICMP hacia 10.10.0.116
+PING 10.10.0.116 (10.10.0.116) 56(84) bytes of data.
+
+--- 10.10.0.116 ping statistics ---
+3 packets transmitted, 0 received, 100% packet loss, time 2110ms
+
+RESULTADO ICMP: sin respuesta (bloqueado)
+RESULTADO TCP 22: sin conexion (bloqueado)
+RESULTADO TCP 80: sin conexion (bloqueado)
+RESULTADO TCP 443: sin conexion (bloqueado)
+
+##### PRUEBA DMZ 13: vm-visitas-1 -> https://mansiondeldisfraz.duckdns.org por Internet (DEBE funcionar)
+ip-10-10-0-84.ec2.internal
+10.10.0.84 
+--- DNS publico
+32.200.48.146   mansiondeldisfraz.duckdns.org
+--- HTTPS
+HTTPS 200
+RESULTADO: web publica accesible por su dominio
+
+##### PRUEBA DMZ 14: vm-datacenter-1 -> DMZ 10.10.0.116 por red privada (DEBE FALLAR)
+ip-10-10-0-109.ec2.internal
+10.10.0.109 
+--- ICMP hacia 10.10.0.116
+PING 10.10.0.116 (10.10.0.116) 56(84) bytes of data.
+
+--- 10.10.0.116 ping statistics ---
+3 packets transmitted, 0 received, 100% packet loss, time 2059ms
+
+RESULTADO ICMP: sin respuesta (bloqueado)
+RESULTADO TCP 22: sin conexion (bloqueado)
+RESULTADO TCP 80: sin conexion (bloqueado)
+RESULTADO TCP 443: sin conexion (bloqueado)
+
+##### PRUEBA DMZ 15: vm-dmz-web -> vm-ti-1 10.10.0.60 (DEBE FALLAR)
+ip-10-10-0-116.ec2.internal
+10.10.0.116 
+--- ICMP hacia 10.10.0.60
+PING 10.10.0.60 (10.10.0.60) 56(84) bytes of data.
+
+--- 10.10.0.60 ping statistics ---
+3 packets transmitted, 0 received, 100% packet loss, time 2062ms
+
+RESULTADO ICMP: sin respuesta (bloqueado)
+RESULTADO TCP 22: sin conexion (bloqueado)
+
+##### PRUEBA DMZ 16: vm-dmz-web -> vm-ventas-1 10.10.0.28 (DEBE FALLAR)
+ip-10-10-0-116.ec2.internal
+10.10.0.116 
+--- ICMP hacia 10.10.0.28
+PING 10.10.0.28 (10.10.0.28) 56(84) bytes of data.
+
+--- 10.10.0.28 ping statistics ---
+3 packets transmitted, 0 received, 100% packet loss, time 2073ms
+
+RESULTADO ICMP: sin respuesta (bloqueado)
+RESULTADO TCP 22: sin conexion (bloqueado)
+
+##### PRUEBA DMZ 17: vm-dmz-web -> vm-datacenter-1 10.10.0.109 (DEBE FALLAR)
+ip-10-10-0-116.ec2.internal
+10.10.0.116 
+--- ICMP hacia 10.10.0.109
+PING 10.10.0.109 (10.10.0.109) 56(84) bytes of data.
+
+--- 10.10.0.109 ping statistics ---
+3 packets transmitted, 0 received, 100% packet loss, time 2088ms
+
+RESULTADO ICMP: sin respuesta (bloqueado)
+RESULTADO TCP 22: sin conexion (bloqueado)
+
+##### PRUEBA DMZ 18: vm-dmz-web -> intranet 10.10.0.101 (DEBE FALLAR)
+ip-10-10-0-116.ec2.internal
+10.10.0.116 
+--- HTTP hacia la intranet 10.10.0.101
+curl: (28) Connection timed out after 5002 milliseconds
+HTTP 000
+RESULTADO: sin respuesta (bloqueado)
+
+##### PRUEBA DMZ 19: vm-dmz-web -> DNS interno 10.10.1.4 (DEBE FALLAR)
+ip-10-10-0-116.ec2.internal
+10.10.0.116 
+--- Nombre interno
+RESULTADO DNS: rrhh.mansiondeldisfraz.local no resuelve desde la DMZ
+--- TCP 53 hacia 10.10.1.4
+RESULTADO TCP 53: sin conexion (bloqueado)
+
+##### PRUEBA DMZ 20: vm-dmz-web -> Internet (solo HTTPS saliente)
+ip-10-10-0-116.ec2.internal
+10.10.0.116 
+--- HTTPS saliente (actualizaciones y certificados)
+32.200.48.146
+RESULTADO HTTPS saliente: permitido (la IP mostrada es la Elastic IP)
+--- HTTP saliente (puerto 80)
+curl: (28) Connection timed out after 5001 milliseconds
+HTTP 000
+RESULTADO HTTP saliente: bloqueado (dmz-web-sg solo deja salir 443)

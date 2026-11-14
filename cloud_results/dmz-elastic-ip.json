@@ -1,0 +1,26 @@
+{
+    "Addresses": [
+        {
+            "AllocationId": "eipalloc-053f4fbb2d1ce3bbf",
+            "AssociationId": "eipassoc-0db3dc2c1d0f936cf",
+            "Domain": "vpc",
+            "NetworkInterfaceId": "eni-0eb269ed860af8683",
+            "NetworkInterfaceOwnerId": "597936860595",
+            "PrivateIpAddress": "10.10.0.116",
+            "Tags": [
+                {
+                    "Key": "Project",
+                    "Value": "proyecto-redes"
+                },
+                {
+                    "Key": "Name",
+                    "Value": "eip-dmz-web"
+                }
+            ],
+            "PublicIpv4Pool": "amazon",
+            "NetworkBorderGroup": "us-east-1",
+            "InstanceId": "i-01e284ea226a31eec",
+            "PublicIp": "32.200.48.146"
+        }
+    ]
+}

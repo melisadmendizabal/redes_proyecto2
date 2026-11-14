@@ -1,0 +1,170 @@
+{
+    "Reservations": [
+        {
+            "ReservationId": "r-050b77f12043d8733",
+            "OwnerId": "597936860595",
+            "Groups": [],
+            "Instances": [
+                {
+                    "Architecture": "x86_64",
+                    "BlockDeviceMappings": [
+                        {
+                            "DeviceName": "/dev/xvda",
+                            "Ebs": {
+                                "AttachTime": "2026-11-14T08:11:22.025000+00:00",
+                                "DeleteOnTermination": true,
+                                "Status": "attached",
+                                "VolumeId": "vol-0303b20222e945717",
+                                "EbsCardIndex": 0
+                            }
+                        }
+                    ],
+                    "ClientToken": "8d52c780-89c4-4a8a-94b7-2d28f8fcf38d",
+                    "EbsOptimized": false,
+                    "EnaSupport": true,
+                    "Hypervisor": "xen",
+                    "NetworkInterfaces": [
+                        {
+                            "Association": {
+                                "IpOwnerId": "597936860595",
+                                "PublicDnsName": "ec2-32-200-48-146.compute-1.amazonaws.com",
+                                "PublicIp": "32.200.48.146"
+                            },
+                            "Attachment": {
+                                "AttachTime": "2026-11-14T08:11:22+00:00",
+                                "AttachmentId": "eni-attach-0c60f485c1096f72a",
+                                "DeleteOnTermination": true,
+                                "DeviceIndex": 0,
+                                "Status": "attached",
+                                "NetworkCardIndex": 0
+                            },
+                            "Description": "",
+                            "Groups": [
+                                {
+                                    "GroupId": "sg-08c666b480b3ad6af",
+                                    "GroupName": "dmz-web-sg"
+                                }
+                            ],
+                            "Ipv6Addresses": [],
+                            "MacAddress": "02:ff:d7:f9:d9:eb",
+                            "NetworkInterfaceId": "eni-0eb269ed860af8683",
+                            "OwnerId": "597936860595",
+                            "PrivateDnsName": "ip-10-10-0-116.ec2.internal",
+                            "PrivateIpAddress": "10.10.0.116",
+                            "PrivateIpAddresses": [
+                                {
+                                    "Association": {
+                                        "IpOwnerId": "597936860595",
+                                        "PublicDnsName": "ec2-32-200-48-146.compute-1.amazonaws.com",
+                                        "PublicIp": "32.200.48.146"
+                                    },
+                                    "Primary": true,
+                                    "PrivateDnsName": "ip-10-10-0-116.ec2.internal",
+                                    "PrivateIpAddress": "10.10.0.116"
+                                }
+                            ],
+                            "SourceDestCheck": true,
+                            "Status": "in-use",
+                            "SubnetId": "subnet-09af77442308c35b2",
+                            "VpcId": "vpc-02251b0b1ccc6414f",
+                            "InterfaceType": "interface",
+                            "Operator": {
+                                "Managed": false
+                            }
+                        }
+                    ],
+                    "RootDeviceName": "/dev/xvda",
+                    "RootDeviceType": "ebs",
+                    "SecurityGroups": [
+                        {
+                            "GroupId": "sg-08c666b480b3ad6af",
+                            "GroupName": "dmz-web-sg"
+                        }
+                    ],
+                    "SourceDestCheck": true,
+                    "Tags": [
+                        {
+                            "Key": "Name",
+                            "Value": "vm-dmz-web"
+                        },
+                        {
+                            "Key": "Project",
+                            "Value": "proyecto-redes"
+                        }
+                    ],
+                    "VirtualizationType": "hvm",
+                    "CpuOptions": {
+                        "CoreCount": 1,
+                        "ThreadsPerCore": 2
+                    },
+                    "CapacityReservationSpecification": {
+                        "CapacityReservationPreference": "open"
+                    },
+                    "HibernationOptions": {
+                        "Configured": false
+                    },
+                    "MetadataOptions": {
+                        "State": "applied",
+                        "HttpTokens": "required",
+                        "HttpPutResponseHopLimit": 2,
+                        "HttpEndpoint": "enabled",
+                        "HttpProtocolIpv6": "disabled",
+                        "InstanceMetadataTags": "disabled"
+                    },
+                    "EnclaveOptions": {
+                        "Enabled": false
+                    },
+                    "BootMode": "uefi-preferred",
+                    "PlatformDetails": "Linux/UNIX",
+                    "UsageOperation": "RunInstances",
+                    "UsageOperationUpdateTime": "2026-11-14T08:11:22+00:00",
+                    "PrivateDnsNameOptions": {
+                        "HostnameType": "ip-name",
+                        "EnableResourceNameDnsARecord": false,
+                        "EnableResourceNameDnsAAAARecord": false
+                    },
+                    "MaintenanceOptions": {
+                        "AutoRecovery": "default",
+                        "RebootMigration": "default"
+                    },
+                    "CurrentInstanceBootMode": "uefi",
+                    "NetworkPerformanceOptions": {
+                        "BandwidthWeighting": "default"
+                    },
+                    "Operator": {
+                        "Managed": false,
+                        "HiddenByDefault": false
+                    },
+                    "SecondaryInterfaces": [],
+                    "InstanceId": "i-01e284ea226a31eec",
+                    "ImageId": "ami-096ef200a877f36af",
+                    "State": {
+                        "Code": 16,
+                        "Name": "running"
+                    },
+                    "PrivateDnsName": "ip-10-10-0-116.ec2.internal",
+                    "PublicDnsName": "ec2-32-200-48-146.compute-1.amazonaws.com",
+                    "StateTransitionReason": "",
+                    "KeyName": "proyecto-key",
+                    "AmiLaunchIndex": 0,
+                    "ProductCodes": [],
+                    "InstanceType": "t3.micro",
+                    "LaunchTime": "2026-11-14T08:11:22+00:00",
+                    "Placement": {
+                        "AvailabilityZoneId": "use1-az1",
+                        "GroupName": "",
+                        "Tenancy": "default",
+                        "AvailabilityZone": "us-east-1a"
+                    },
+                    "Monitoring": {
+                        "State": "disabled"
+                    },
+                    "SubnetId": "subnet-09af77442308c35b2",
+                    "VpcId": "vpc-02251b0b1ccc6414f",
+                    "PrivateIpAddress": "10.10.0.116",
+                    "PublicIpAddress": "32.200.48.146"
+                }
+            ]
+        }
+    ]
+}

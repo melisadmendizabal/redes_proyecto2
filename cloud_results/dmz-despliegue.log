@@ -1,0 +1,69 @@
+==> VPC vpc-02251b0b1ccc6414f | Internet Gateway igw-09a71c300f15a3667 | Zona us-east-1a
+==> Creando subred snet-dmz 10.10.0.112/28
+==> Subred DMZ: subnet-09af77442308c35b2
+==> Creando tabla de rutas rt-dmz (local + 0.0.0.0/0 hacia igw-09a71c300f15a3667)
+==> Tabla de rutas rtb-05485a69996d5a396 asociada a la DMZ
+==> Creando Network ACL nacl-dmz
+==> Subred DMZ asociada a nacl-dmz (acl-0cebd51f250175bdd)
+==> Creando Security Group dmz-web-sg
+==> Security Group sg-08c666b480b3ad6af
+==> Reservando Elastic IP eip-dmz-web
+==> Elastic IP 32.200.48.146 (eipalloc-053f4fbb2d1ce3bbf)
+==> Lanzando vm-dmz-web (t3.micro) con IP 10.10.0.116
+==> Esperando a que i-01e284ea226a31eec arranque
+==> Esperando a que Nginx responda en http://32.200.48.146 (user data, 2-5 min)
+==> http://32.200.48.146 responde HTTP 200 desde Internet
+
+==> Rutas de rt-dmz
+-----------------------------------------------------
+|                DescribeRouteTables                |
++---------------+-------------------------+---------+
+|  10.10.0.0/24 |  local                  |  active |
+|  0.0.0.0/0    |  igw-09a71c300f15a3667  |  active |
++---------------+-------------------------+---------+
+==> Entradas de nacl-dmz (Egress False = entrada, True = salida)
+---------------------------------------------------------------------
+|                        DescribeNetworkAcls                        |
++-------+--------+--------+-----+-----------------+-------+---------+
+|  True |  100   |  allow |  6  |  10.10.0.32/27  |  1024 |  65535  |
+|  False|  100   |  allow |  6  |  10.10.0.32/27  |  22   |  22     |
+|  True |  110   |  allow |  1  |  10.10.0.32/27  |  None |  None   |
+|  False|  110   |  allow |  1  |  10.10.0.32/27  |  None |  None   |
+|  False|  120   |  allow |  6  |  10.10.0.32/27  |  80   |  80     |
+|  False|  130   |  allow |  6  |  10.10.0.32/27  |  443  |  443    |
+|  True |  190   |  deny  |  -1 |  10.10.0.0/24   |  None |  None   |
+|  False|  190   |  deny  |  -1 |  10.10.0.0/24   |  None |  None   |
+|  True |  200   |  deny  |  -1 |  10.10.1.0/28   |  None |  None   |
+|  False|  200   |  deny  |  -1 |  10.10.1.0/28   |  None |  None   |
+|  True |  300   |  allow |  6  |  0.0.0.0/0      |  443  |  443    |
+|  False|  300   |  allow |  6  |  0.0.0.0/0      |  80   |  80     |
+|  True |  310   |  allow |  6  |  0.0.0.0/0      |  1024 |  65535  |
+|  False|  310   |  allow |  6  |  0.0.0.0/0      |  443  |  443    |
+|  False|  320   |  allow |  6  |  0.0.0.0/0      |  1024 |  65535  |
+|  True |  32767 |  deny  |  -1 |  0.0.0.0/0      |  None |  None   |
+|  False|  32767 |  deny  |  -1 |  0.0.0.0/0      |  None |  None   |
++-------+--------+--------+-----+-----------------+-------+---------+
+==> Reglas de dmz-web-sg (entrada)
+----------------------------------------------------------------------------
+|                          DescribeSecurityGroups                          |
++------+------+------+----------------+------------------------------------+
+|  tcp |  80  |  80  |  0.0.0.0/0     |  http-publico-redireccion-y-acme   |
+|  tcp |  22  |  22  |  10.10.0.32/27 |  ssh-ti-y-eice                     |
+|  icmp|  -1  |  -1  |  10.10.0.32/27 |  icmp-ti                           |
+|  tcp |  443 |  443 |  0.0.0.0/0     |  https-publico                     |
++------+------+------+----------------+------------------------------------+
+==> Reglas de dmz-web-sg (salida)
+-----------------------------------------------------------------
+|                    DescribeSecurityGroups                     |
++-----+------+------+------------+------------------------------+
+|  tcp|  443 |  443 |  0.0.0.0/0 |  https-saliente-dnf-y-acme   |
++-----+------+------+------------+------------------------------+
+----------------------------------------------------------------------------------------------
+|                                      DescribeInstances                                     |
++------------+-----------------------+-----------+--------------+----------------+-----------+
+|  vm-dmz-web|  i-01e284ea226a31eec  |  t3.micro |  10.10.0.116 |  32.200.48.146 |  running  |
++------------+-----------------------+-----------+--------------+----------------+-----------+
+Evidencia guardada en /home/cloudshell-user/evidencia-aws
+
+Siguiente paso: en https://www.duckdns.org apunta el subdominio a 32.200.48.146 y luego ejecuta:
+  bash habilitar-https-fase2.sh mansiondeldisfraz.duckdns.org
