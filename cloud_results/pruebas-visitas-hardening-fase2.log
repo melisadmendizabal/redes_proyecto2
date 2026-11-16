@@ -1,0 +1,491 @@
+vm-ventas-1 10.10.0.28 (44.211.50.162) | vm-ventas-2 10.10.0.21 | vm-ti-1 10.10.0.60 | vm-visitas-1 10.10.0.84 (98.80.196.104)
+vm-datacenter-1 10.10.0.109 | vm-intranet-rrhh 10.10.0.101 | vm-dmz-web 10.10.0.116 | vm-dns-fase2 10.10.1.4 | dominio mansiondeldisfraz.duckdns.org
+
+##### CONFIGURACION: visitas-sg, nacl-visitas y Security Groups endurecidos
+------------------------------
+|      DescribeInstances     |
++----------------------------+
+|  vm-visitas-1              |
+|  subnet-0afbdffb68119a7f9  |
+|  visitas-sg                |
++----------------------------+
+--- visitas-sg (entrada)
+---------------------------------------
+|       DescribeSecurityGroups        |
++------+-----+-----+------------------+
+|  tcp |  22 |  22 |  10.10.0.32/27   |
+|  icmp|  -1 |  -1 |  10.10.0.32/27   |
++------+-----+-----+------------------+
+--- startup-sg (entrada)
+---------------------------------------
+|       DescribeSecurityGroups        |
++------+-----+-----+------------------+
+|  tcp |  22 |  22 |  10.10.0.32/27   |
+|  icmp|  -1 |  -1 |  10.10.0.0/24    |
++------+-----+-----+------------------+
+--- intranet-rrhh-sg (entrada)
+-------------------------------------------------------------------
+|                     DescribeSecurityGroups                      |
++-----+-----+-----+-----------------------------------------------+
+|  tcp|  80 |  80 |  10.10.0.0/27, 10.10.0.32/27, 10.10.0.96/28   |
+|  tcp|  22 |  22 |  10.10.0.32/27                                |
++-----+-----+-----+-----------------------------------------------+
+--- nacl-visitas (Egress False = entrada, True = salida)
+------------------------------------------------------------------------------
+|                             DescribeNetworkAcls                            |
++-------+--------+--------+-----+-----------------+-------+---------+--------+
+|  True |  100   |  allow |  6  |  10.10.0.32/27  |  1024 |  65535  |  None  |
+|  False|  100   |  allow |  -1 |  10.10.0.32/27  |  None |  None   |  None  |
+|  True |  110   |  allow |  1  |  10.10.0.32/27  |  None |  None   |  -1    |
+|  True |  190   |  deny  |  -1 |  10.0.0.0/8     |  None |  None   |  None  |
+|  False|  190   |  deny  |  -1 |  10.0.0.0/8     |  None |  None   |  None  |
+|  True |  200   |  deny  |  -1 |  172.16.0.0/12  |  None |  None   |  None  |
+|  False|  200   |  deny  |  -1 |  172.16.0.0/12  |  None |  None   |  None  |
+|  True |  210   |  deny  |  -1 |  192.168.0.0/16 |  None |  None   |  None  |
+|  False|  210   |  deny  |  -1 |  192.168.0.0/16 |  None |  None   |  None  |
+|  True |  300   |  allow |  -1 |  0.0.0.0/0      |  None |  None   |  None  |
+|  False|  300   |  allow |  6  |  0.0.0.0/0      |  1024 |  65535  |  None  |
+|  False|  310   |  allow |  17 |  0.0.0.0/0      |  1024 |  65535  |  None  |
+|  False|  320   |  allow |  1  |  0.0.0.0/0      |  None |  None   |  0     |
+|  False|  330   |  allow |  1  |  0.0.0.0/0      |  None |  None   |  3     |
+|  False|  340   |  allow |  1  |  0.0.0.0/0      |  None |  None   |  11    |
+|  True |  32767 |  deny  |  -1 |  0.0.0.0/0      |  None |  None   |  None  |
+|  False|  32767 |  deny  |  -1 |  0.0.0.0/0      |  None |  None   |  None  |
++-------+--------+--------+-----+-----------------+-------+---------+--------+
+
+##### PRUEBA P5-1: vm-visitas-1 -> Internet por HTTPS (DEBE funcionar)
+origen: ip-10-10-0-84.ec2.internal 10.10.0.84 
+98.80.196.104
+--- curl https://checkip.amazonaws.com
+HTTP 200
+RESULTADO: responde 200 ESTADO=PERMITIDO
+>> OK (esperado PERMITIDO)
+
+##### PRUEBA P5-2: vm-visitas-1 -> Internet por HTTP 80 (DEBE funcionar)
+origen: ip-10-10-0-84.ec2.internal 10.10.0.84 
+--- curl http://example.com/
+HTTP 200
+RESULTADO: responde 200 ESTADO=PERMITIDO
+>> OK (esperado PERMITIDO)
+
+##### PRUEBA P5-3: vm-visitas-1 -> DNS publico (DEBE resolver)
+origen: ip-10-10-0-84.ec2.internal 10.10.0.84 
+98.87.170.74    amazon.com
+98.87.170.71    amazon.com
+98.82.161.185   amazon.com
+ESTADO=PERMITIDO
+>> OK (esperado PERMITIDO)
+
+##### PRUEBA P5-4: vm-visitas-1 -> web publica https://mansiondeldisfraz.duckdns.org (DEBE funcionar)
+origen: ip-10-10-0-84.ec2.internal 10.10.0.84 
+--- curl https://mansiondeldisfraz.duckdns.org/
+HTTP 200
+RESULTADO: responde 200 ESTADO=PERMITIDO
+>> OK (esperado PERMITIDO)
+
+##### PRUEBA P5-5: vm-visitas-1 -> vm-ventas-1 10.10.0.28 (DEBE FALLAR)
+origen: ip-10-10-0-84.ec2.internal 10.10.0.84 
+--- ping 10.10.0.28
+PING 10.10.0.28 (10.10.0.28) 56(84) bytes of data.
+From 10.10.0.84 icmp_seq=1 Packet filtered
+ping: sendmsg: Operation not permitted
+From 10.10.0.84 icmp_seq=2 Packet filtered
+ping: sendmsg: Operation not permitted
+
+--- 10.10.0.28 ping statistics ---
+2 packets transmitted, 0 received, +2 errors, 100% packet loss, time 1075ms
+
+RESULTADO ICMP: sin respuesta ESTADO=BLOQUEADO
+--- TCP 10.10.0.28:22
+RESULTADO TCP 22: sin conexion ESTADO=BLOQUEADO
+>> OK (esperado BLOQUEADO)
+
+##### PRUEBA P5-6: vm-visitas-1 -> vm-ti-1 10.10.0.60 (DEBE FALLAR)
+origen: ip-10-10-0-84.ec2.internal 10.10.0.84 
+--- ping 10.10.0.60
+PING 10.10.0.60 (10.10.0.60) 56(84) bytes of data.
+From 10.10.0.84 icmp_seq=1 Packet filtered
+ping: sendmsg: Operation not permitted
+From 10.10.0.84 icmp_seq=2 Packet filtered
+ping: sendmsg: Operation not permitted
+
+--- 10.10.0.60 ping statistics ---
+2 packets transmitted, 0 received, +2 errors, 100% packet loss, time 1067ms
+
+RESULTADO ICMP: sin respuesta ESTADO=BLOQUEADO
+--- TCP 10.10.0.60:22
+RESULTADO TCP 22: sin conexion ESTADO=BLOQUEADO
+>> OK (esperado BLOQUEADO)
+
+##### PRUEBA P5-7: vm-visitas-1 -> vm-datacenter-1 10.10.0.109 (DEBE FALLAR)
+origen: ip-10-10-0-84.ec2.internal 10.10.0.84 
+--- ping 10.10.0.109
+PING 10.10.0.109 (10.10.0.109) 56(84) bytes of data.
+From 10.10.0.84 icmp_seq=1 Packet filtered
+ping: sendmsg: Operation not permitted
+From 10.10.0.84 icmp_seq=2 Packet filtered
+ping: sendmsg: Operation not permitted
+
+--- 10.10.0.109 ping statistics ---
+2 packets transmitted, 0 received, +2 errors, 100% packet loss, time 1035ms
+
+RESULTADO ICMP: sin respuesta ESTADO=BLOQUEADO
+--- TCP 10.10.0.109:22
+RESULTADO TCP 22: sin conexion ESTADO=BLOQUEADO
+>> OK (esperado BLOQUEADO)
+
+##### PRUEBA P5-8: vm-visitas-1 -> intranet 10.10.0.101 (DEBE FALLAR)
+origen: ip-10-10-0-84.ec2.internal 10.10.0.84 
+rrhh.mansiondeldisfraz.local no resuelve
+--- TCP 10.10.0.101:80
+RESULTADO TCP 80: sin conexion ESTADO=BLOQUEADO
+>> OK (esperado BLOQUEADO)
+
+##### PRUEBA P5-9: vm-visitas-1 -> DMZ por IP privada 10.10.0.116 (DEBE FALLAR)
+origen: ip-10-10-0-84.ec2.internal 10.10.0.84 
+--- TCP 10.10.0.116:22
+RESULTADO TCP 22: sin conexion ESTADO=BLOQUEADO
+--- TCP 10.10.0.116:80
+RESULTADO TCP 80: sin conexion ESTADO=BLOQUEADO
+--- TCP 10.10.0.116:443
+RESULTADO TCP 443: sin conexion ESTADO=BLOQUEADO
+>> OK (esperado BLOQUEADO)
+
+##### PRUEBA P5-10: vm-visitas-1 -> DNS interno 10.10.1.4 (DEBE FALLAR)
+origen: ip-10-10-0-84.ec2.internal 10.10.0.84 
+--- dig @10.10.1.4 rrhh
+respuesta: ;; communications error to 10.10.1.4#53: host unreachable
+
+; <<>> DiG 9.18.50 <<>> @10.10.1.4 rrhh.mansiondeldisfraz.local A +short +time=2 +tries=1
+; (1 server found)
+;; global options: +cmd
+;; no servers could be reached
+ESTADO=BLOQUEADO
+--- TCP 10.10.1.4:53
+RESULTADO TCP 53: sin conexion ESTADO=BLOQUEADO
+>> OK (esperado BLOQUEADO)
+
+##### PRUEBA P5-11: vm-ti-1 -> vm-visitas-1 10.10.0.84 (TI llega a todo, DEBE funcionar)
+origen: ip-10-10-0-60.ec2.internal 10.10.0.60 
+--- ping 10.10.0.84
+PING 10.10.0.84 (10.10.0.84) 56(84) bytes of data.
+64 bytes from 10.10.0.84: icmp_seq=1 ttl=127 time=0.180 ms
+64 bytes from 10.10.0.84: icmp_seq=2 ttl=127 time=0.193 ms
+
+--- 10.10.0.84 ping statistics ---
+2 packets transmitted, 2 received, 0% packet loss, time 1052ms
+rtt min/avg/max/mdev = 0.180/0.186/0.193/0.006 ms
+RESULTADO ICMP: responde ESTADO=PERMITIDO
+--- TCP 10.10.0.84:22
+RESULTADO TCP 22: conexion abierta ESTADO=PERMITIDO
+>> OK (esperado PERMITIDO)
+
+##### PRUEBA P5-12: vm-ventas-1 -> vm-visitas-1 10.10.0.84 (DEBE FALLAR)
+origen: ip-10-10-0-28.ec2.internal 10.10.0.28 
+--- ping 10.10.0.84
+PING 10.10.0.84 (10.10.0.84) 56(84) bytes of data.
+
+--- 10.10.0.84 ping statistics ---
+2 packets transmitted, 0 received, 100% packet loss, time 1055ms
+
+RESULTADO ICMP: sin respuesta ESTADO=BLOQUEADO
+--- TCP 10.10.0.84:22
+RESULTADO TCP 22: sin conexion ESTADO=BLOQUEADO
+>> OK (esperado BLOQUEADO)
+
+##### PRUEBA P5-13: Internet (CloudShell) -> vm-visitas-1 98.80.196.104 puerto 22 (DEBE FALLAR)
+RESULTADO TCP 22 en 98.80.196.104: sin conexion ESTADO=BLOQUEADO
+>> OK (esperado BLOQUEADO)
+
+##### PRUEBA P5-14: hardening de vm-ventas-1 (rol ventas): SSH, firewall del SO, puertos y sysctl
+--- Verificacion de hardening en ip-10-10-0-28.ec2.internal (10.10.0.28), rol ventas
+  OK     SSH: sin login de root
+  OK     SSH: sin contrasenas
+  OK     SSH: sin keyboard-interactive
+  OK     SSH: solo llave publica
+  OK     SSH: maximo 3 intentos
+  OK     SSH: sin X11
+  OK     SSH: reenvio de puertos = no
+  OK     SSH: solo ec2-user
+  OK     SSH: solo IPv4
+  OK     nft: tabla redes_hardening cargada
+  OK     nft: politica de entrada DROP
+  OK     sysctl: sin ICMP redirects
+  OK     sysctl: sin source routing
+  OK     sysctl: SYN cookies
+  OK     nftables se carga al arrancar
+  OK     hardening confirmado (sin reversion pendiente)
+  OK     servicios innecesarios apagados
+  OK     solo escuchan puertos del rol (tcp:22 udp:68 udp:546)
+  OK     sshd no escucha en IPv6
+RESULTADO: hardening completo ESTADO=CUMPLE
+>> OK (esperado CUMPLE)
+
+##### PRUEBA P5-15: hardening de vm-ventas-2 (rol ventas): SSH, firewall del SO, puertos y sysctl
+--- Verificacion de hardening en ip-10-10-0-21.ec2.internal (10.10.0.21), rol ventas
+  OK     SSH: sin login de root
+  OK     SSH: sin contrasenas
+  OK     SSH: sin keyboard-interactive
+  OK     SSH: solo llave publica
+  OK     SSH: maximo 3 intentos
+  OK     SSH: sin X11
+  OK     SSH: reenvio de puertos = no
+  OK     SSH: solo ec2-user
+  OK     SSH: solo IPv4
+  OK     nft: tabla redes_hardening cargada
+  OK     nft: politica de entrada DROP
+  OK     sysctl: sin ICMP redirects
+  OK     sysctl: sin source routing
+  OK     sysctl: SYN cookies
+  OK     nftables se carga al arrancar
+  OK     hardening confirmado (sin reversion pendiente)
+  OK     servicios innecesarios apagados
+  OK     solo escuchan puertos del rol (tcp:22 udp:68 udp:546)
+  OK     sshd no escucha en IPv6
+RESULTADO: hardening completo ESTADO=CUMPLE
+>> OK (esperado CUMPLE)
+
+##### PRUEBA P5-16: hardening de vm-ti-1 (rol ti): SSH, firewall del SO, puertos y sysctl
+--- Verificacion de hardening en ip-10-10-0-60.ec2.internal (10.10.0.60), rol ti
+  OK     SSH: sin login de root
+  OK     SSH: sin contrasenas
+  OK     SSH: sin keyboard-interactive
+  OK     SSH: solo llave publica
+  OK     SSH: maximo 3 intentos
+  OK     SSH: sin X11
+  OK     SSH: reenvio de puertos = yes
+  OK     SSH: solo ec2-user
+  OK     SSH: solo IPv4
+  OK     nft: tabla redes_hardening cargada
+  OK     nft: politica de entrada DROP
+  OK     sysctl: sin ICMP redirects
+  OK     sysctl: sin source routing
+  OK     sysctl: SYN cookies
+  OK     nftables se carga al arrancar
+  OK     hardening confirmado (sin reversion pendiente)
+  OK     servicios innecesarios apagados
+  OK     solo escuchan puertos del rol (tcp:22 udp:68 udp:546)
+  OK     sshd no escucha en IPv6
+RESULTADO: hardening completo ESTADO=CUMPLE
+>> OK (esperado CUMPLE)
+
+##### PRUEBA P5-17: hardening de vm-datacenter-1 (rol datacenter): SSH, firewall del SO, puertos y sysctl
+--- Verificacion de hardening en ip-10-10-0-109.ec2.internal (10.10.0.109), rol datacenter
+  OK     SSH: sin login de root
+  OK     SSH: sin contrasenas
+  OK     SSH: sin keyboard-interactive
+  OK     SSH: solo llave publica
+  OK     SSH: maximo 3 intentos
+  OK     SSH: sin X11
+  OK     SSH: reenvio de puertos = no
+  OK     SSH: solo ec2-user
+  OK     SSH: solo IPv4
+  OK     nft: tabla redes_hardening cargada
+  OK     nft: politica de entrada DROP
+  OK     sysctl: sin ICMP redirects
+  OK     sysctl: sin source routing
+  OK     sysctl: SYN cookies
+  OK     nftables se carga al arrancar
+  OK     hardening confirmado (sin reversion pendiente)
+  OK     servicios innecesarios apagados
+  OK     solo escuchan puertos del rol (tcp:22 udp:68 udp:546)
+  OK     sshd no escucha en IPv6
+RESULTADO: hardening completo ESTADO=CUMPLE
+>> OK (esperado CUMPLE)
+
+##### PRUEBA P5-18: hardening de vm-visitas-1 (rol visitas): SSH, firewall del SO, puertos y sysctl
+--- Verificacion de hardening en ip-10-10-0-84.ec2.internal (10.10.0.84), rol visitas
+  OK     SSH: sin login de root
+  OK     SSH: sin contrasenas
+  OK     SSH: sin keyboard-interactive
+  OK     SSH: solo llave publica
+  OK     SSH: maximo 3 intentos
+  OK     SSH: sin X11
+  OK     SSH: reenvio de puertos = no
+  OK     SSH: solo ec2-user
+  OK     SSH: solo IPv4
+  OK     nft: tabla redes_hardening cargada
+  OK     nft: politica de entrada DROP
+  OK     nft: salida hacia redes privadas bloqueada
+  OK     sysctl: sin ICMP redirects
+  OK     sysctl: sin source routing
+  OK     sysctl: SYN cookies
+  OK     nftables se carga al arrancar
+  OK     hardening confirmado (sin reversion pendiente)
+  OK     servicios innecesarios apagados
+  OK     solo escuchan puertos del rol (tcp:22 udp:68 udp:546)
+  OK     sshd no escucha en IPv6
+RESULTADO: hardening completo ESTADO=CUMPLE
+>> OK (esperado CUMPLE)
+
+##### PRUEBA P5-19: hardening de vm-intranet-rrhh (rol intranet): SSH, firewall del SO, puertos y sysctl
+--- Verificacion de hardening en ip-10-10-0-101.ec2.internal (10.10.0.101), rol intranet
+  OK     SSH: sin login de root
+  OK     SSH: sin contrasenas
+  OK     SSH: sin keyboard-interactive
+  OK     SSH: solo llave publica
+  OK     SSH: maximo 3 intentos
+  OK     SSH: sin X11
+  OK     SSH: reenvio de puertos = no
+  OK     SSH: solo ec2-user
+  OK     SSH: solo IPv4
+  OK     nft: tabla redes_hardening cargada
+  OK     nft: politica de entrada DROP
+  OK     sysctl: sin ICMP redirects
+  OK     sysctl: sin source routing
+  OK     sysctl: SYN cookies
+  OK     nftables se carga al arrancar
+  OK     hardening confirmado (sin reversion pendiente)
+  OK     servicios innecesarios apagados
+  OK     solo escuchan puertos del rol (tcp:22 udp:68 udp:546 tcp:80)
+  OK     sshd no escucha en IPv6
+RESULTADO: hardening completo ESTADO=CUMPLE
+>> OK (esperado CUMPLE)
+
+##### PRUEBA P5-20: hardening de vm-dmz-web (rol dmz): SSH, firewall del SO, puertos y sysctl
+--- Verificacion de hardening en ip-10-10-0-116.ec2.internal (10.10.0.116), rol dmz
+  OK     SSH: sin login de root
+  OK     SSH: sin contrasenas
+  OK     SSH: sin keyboard-interactive
+  OK     SSH: solo llave publica
+  OK     SSH: maximo 3 intentos
+  OK     SSH: sin X11
+  OK     SSH: reenvio de puertos = no
+  OK     SSH: solo ec2-user
+  OK     SSH: solo IPv4
+  OK     nft: tabla redes_hardening cargada
+  OK     nft: politica de entrada DROP
+  OK     nft: salida hacia redes privadas bloqueada
+  OK     sysctl: sin ICMP redirects
+  OK     sysctl: sin source routing
+  OK     sysctl: SYN cookies
+  OK     nftables se carga al arrancar
+  OK     hardening confirmado (sin reversion pendiente)
+  OK     servicios innecesarios apagados
+  OK     solo escuchan puertos del rol (tcp:22 udp:68 udp:546 tcp:80 tcp:443)
+  OK     sshd no escucha en IPv6
+RESULTADO: hardening completo ESTADO=CUMPLE
+>> OK (esperado CUMPLE)
+
+##### PRUEBA P5-21: hardening de vm-dns-fase2 (rol dns): SSH, firewall del SO, puertos y sysctl
+Connection timed out during banner exchange
+>> FALLO: sin resultado (no se pudo ejecutar la prueba)
+
+##### PRUEBA P5-22: Internet (CloudShell) -> vm-ventas-1 44.211.50.162 puerto 22 (DEBE FALLAR)
+RESULTADO TCP 22 en 44.211.50.162: sin conexion ESTADO=BLOQUEADO
+>> OK (esperado BLOQUEADO)
+
+##### PRUEBA P5-23: Internet (CloudShell) -> vm-ventas-2 34.201.42.174 puerto 22 (DEBE FALLAR)
+RESULTADO TCP 22 en 34.201.42.174: sin conexion ESTADO=BLOQUEADO
+>> OK (esperado BLOQUEADO)
+
+##### PRUEBA P5-24: vm-ventas-1 -> SSH de ventas-2, Data Center e intranet (solo TI administra, DEBE FALLAR)
+origen: ip-10-10-0-28.ec2.internal 10.10.0.28 
+--- TCP 10.10.0.21:22
+RESULTADO TCP 22: sin conexion ESTADO=BLOQUEADO
+--- TCP 10.10.0.109:22
+RESULTADO TCP 22: sin conexion ESTADO=BLOQUEADO
+--- TCP 10.10.0.101:22
+RESULTADO TCP 22: sin conexion ESTADO=BLOQUEADO
+>> OK (esperado BLOQUEADO)
+
+##### PRUEBA P5-25: vm-ti-1 -> vm-ventas-1 con contrasena (solo llave publica, DEBE FALLAR)
+origen: ip-10-10-0-60.ec2.internal 10.10.0.60 
+--- ssh con contrasena hacia 10.10.0.28
+Warning: Permanently added '10.10.0.28' (ED25519) to the list of known hosts.
+Acceso restringido al personal de TI de Mansion del Disfraz. La actividad se registra.
+ec2-user@10.10.0.28: Permission denied (publickey).
+RESULTADO: el servidor solo ofrece llave publica ESTADO=BLOQUEADO
+>> OK (esperado BLOQUEADO)
+
+##### PRUEBA P5-26: salto SSH por vm-ventas-1 hacia la intranet (Ventas ya no es bastion, DEBE FALLAR)
+stdio forwarding failed
+RESULTADO: vm-ventas-1 no reenvia conexiones (AllowTcpForwarding no) ESTADO=BLOQUEADO
+>> OK (esperado BLOQUEADO)
+
+##### PRUEBA P5-27: vm-ti-1 -> SSH de todas las VM (la administracion sigue funcionando, DEBE funcionar)
+origen: ip-10-10-0-60.ec2.internal 10.10.0.60 
+--- TCP 10.10.0.28:22
+RESULTADO TCP 22: conexion abierta ESTADO=PERMITIDO
+--- TCP 10.10.0.21:22
+RESULTADO TCP 22: conexion abierta ESTADO=PERMITIDO
+--- TCP 10.10.0.109:22
+RESULTADO TCP 22: conexion abierta ESTADO=PERMITIDO
+--- TCP 10.10.0.84:22
+RESULTADO TCP 22: conexion abierta ESTADO=PERMITIDO
+--- TCP 10.10.0.101:22
+RESULTADO TCP 22: conexion abierta ESTADO=PERMITIDO
+--- TCP 10.10.0.116:22
+RESULTADO TCP 22: conexion abierta ESTADO=PERMITIDO
+--- TCP 10.10.1.4:22
+RESULTADO TCP 22: sin conexion ESTADO=BLOQUEADO
+>> FALLO: esperado PERMITIDO, obtenido ESTADO=BLOQUEADO ESTADO=PERMITIDO 
+
+##### PRUEBA P5-28: vm-ventas-1 -> DNS interno: dig rrhh (DEBE funcionar)
+origen: ip-10-10-0-28.ec2.internal 10.10.0.28 
+--- dig @10.10.1.4 rrhh
+respuesta: 10.10.0.101
+ESTADO=PERMITIDO
+>> OK (esperado PERMITIDO)
+
+##### PRUEBA P5-29: vm-ventas-1 -> http://rrhh.mansiondeldisfraz.local por nombre (DEBE funcionar)
+origen: ip-10-10-0-28.ec2.internal 10.10.0.28 
+10.10.0.101     rrhh.mansiondeldisfraz.local
+--- curl http://rrhh.mansiondeldisfraz.local/
+HTTP 200
+RESULTADO: responde 200 ESTADO=PERMITIDO
+>> OK (esperado PERMITIDO)
+
+##### PRUEBA P5-30: vm-ti-1 -> http://rrhh.mansiondeldisfraz.local por nombre (DEBE funcionar)
+origen: ip-10-10-0-60.ec2.internal 10.10.0.60 
+--- curl http://rrhh.mansiondeldisfraz.local/
+HTTP 200
+RESULTADO: responde 200 ESTADO=PERMITIDO
+>> OK (esperado PERMITIDO)
+
+##### PRUEBA P5-31: vm-datacenter-1 -> intranet (--resolve, DEBE funcionar)
+origen: ip-10-10-0-109.ec2.internal 10.10.0.109 
+--- curl http://rrhh.mansiondeldisfraz.local/
+HTTP 200
+RESULTADO: responde 200 ESTADO=PERMITIDO
+>> OK (esperado PERMITIDO)
+
+##### PRUEBA P5-32: Internet -> http://mansiondeldisfraz.duckdns.org (DEBE redirigir 301 a HTTPS)
+--- curl http://mansiondeldisfraz.duckdns.org/
+HTTP 301
+RESULTADO: responde 301 ESTADO=PERMITIDO
+>> OK (esperado PERMITIDO)
+
+##### PRUEBA P5-33: Internet -> https://mansiondeldisfraz.duckdns.org (DEBE funcionar)
+--- curl https://mansiondeldisfraz.duckdns.org/
+HTTP 200
+RESULTADO: responde 200 ESTADO=PERMITIDO
+>> OK (esperado PERMITIDO)
+
+##### PRUEBA P5-34: vm-ventas-1 -> https://mansiondeldisfraz.duckdns.org por Internet (DEBE funcionar)
+origen: ip-10-10-0-28.ec2.internal 10.10.0.28 
+--- curl https://mansiondeldisfraz.duckdns.org/
+HTTP 200
+RESULTADO: responde 200 ESTADO=PERMITIDO
+>> OK (esperado PERMITIDO)
+
+##### PRUEBA P5-35: vm-dmz-web: renovacion del certificado (certbot renew --dry-run, DEBE funcionar)
+origen: ip-10-10-0-116.ec2.internal 10.10.0.116 
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+Congratulations, all simulated renewals succeeded: 
+  /etc/letsencrypt/live/mansiondeldisfraz.duckdns.org/fullchain.pem (success)
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+ESTADO=PERMITIDO
+>> OK (esperado PERMITIDO)
+
+##### PRUEBA P5-36: vm-dmz-web -> vm-ti-1 e intranet (la DMZ sigue aislada, DEBE FALLAR)
+origen: ip-10-10-0-116.ec2.internal 10.10.0.116 
+--- TCP 10.10.0.60:22
+RESULTADO TCP 22: sin conexion ESTADO=BLOQUEADO
+--- TCP 10.10.0.101:80
+RESULTADO TCP 80: sin conexion ESTADO=BLOQUEADO
+>> OK (esperado BLOQUEADO)
+
+==================================================================
+RESUMEN: 34 de 36 pruebas con el resultado esperado; 2 con fallo (pruebas: 21 27)
+==================================================================

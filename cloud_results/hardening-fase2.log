@@ -1,0 +1,879 @@
+Aviso: vm-dns-fase2 usa la llave 'None' (no proyecto-key); se omite su hardening automatico.
+##### HARDENING 1: Security Groups (nube)
+--- startup-sg (vm-ventas-1, vm-ventas-2, vm-datacenter-1) ANTES
+----------------------------------------------------------------------------------------
+|                                DescribeSecurityGroups                                |
++------+-----+-----+-------------------------------------------------------------------+
+|  tcp |  22 |  22 |  32.192.35.53/32, 10.10.0.0/24, 98.83.135.208/32, 3.82.56.79/32   |
+|  icmp|  -1 |  -1 |  10.10.0.0/24                                                     |
++------+-----+-----+-------------------------------------------------------------------+
+   cerrado: TCP 22 desde 32.192.35.53/32
+   cerrado: TCP 22 desde 10.10.0.0/24
+   cerrado: TCP 22 desde 98.83.135.208/32
+   cerrado: TCP 22 desde 3.82.56.79/32
+--- startup-sg DESPUES
+---------------------------------------
+|       DescribeSecurityGroups        |
++------+-----+-----+------------------+
+|  tcp |  22 |  22 |  10.10.0.32/27   |
+|  icmp|  -1 |  -1 |  10.10.0.0/24    |
++------+-----+-----+------------------+
+--- intranet-rrhh-sg ANTES
+-------------------------------------------------------------------
+|                     DescribeSecurityGroups                      |
++-----+-----+-----+-----------------------------------------------+
+|  tcp|  80 |  80 |  10.10.0.0/27, 10.10.0.32/27, 10.10.0.96/28   |
+|  tcp|  22 |  22 |  10.10.0.0/27, 10.10.0.32/27                  |
++-----+-----+-----+-----------------------------------------------+
+   cerrado: TCP 22 desde Ventas (10.10.0.0/27); la intranet se administra desde TI
+--- intranet-rrhh-sg DESPUES
+-------------------------------------------------------------------
+|                     DescribeSecurityGroups                      |
++-----+-----+-----+-----------------------------------------------+
+|  tcp|  80 |  80 |  10.10.0.0/27, 10.10.0.32/27, 10.10.0.96/28   |
+|  tcp|  22 |  22 |  10.10.0.32/27                                |
++-----+-----+-----+-----------------------------------------------+
+
+##### HARDENING: vm-dmz-web (rol dmz)
+----- ANTES
+--- ip-10-10-0-116.ec2.internal | IP 10.10.0.116 | rol dmz
+--- Puertos en escucha (ss -tulpn)
+Netid State  Recv-Q Send-Q                  Local Address:Port Peer Address:PortProcess                                                                              
+udp   UNCONN 0      0                           127.0.0.1:323       0.0.0.0:*    users:(("chronyd",pid=1940,fd=5))                                                   
+udp   UNCONN 0      0                    10.10.0.116%ens5:68        0.0.0.0:*    users:(("systemd-network",pid=1733,fd=17))                                          
+udp   UNCONN 0      0                               [::1]:323          [::]:*    users:(("chronyd",pid=1940,fd=6))                                                   
+udp   UNCONN 0      0      [fe80::ff:d7ff:fef9:d9eb]%ens5:546          [::]:*    users:(("systemd-network",pid=1733,fd=19))                                          
+tcp   LISTEN 0      128                           0.0.0.0:22        0.0.0.0:*    users:(("sshd",pid=1911,fd=7))                                                      
+tcp   LISTEN 0      511                           0.0.0.0:80        0.0.0.0:*    users:(("nginx",pid=26429,fd=9),("nginx",pid=26428,fd=9),("nginx",pid=4863,fd=9))   
+tcp   LISTEN 0      511                           0.0.0.0:443       0.0.0.0:*    users:(("nginx",pid=26429,fd=16),("nginx",pid=26428,fd=16),("nginx",pid=4863,fd=16))
+tcp   LISTEN 0      128                              [::]:22           [::]:*    users:(("sshd",pid=1911,fd=8))                                                      
+--- SSH efectivo (sshd -T)
+addressfamily any
+logingracetime 120
+maxauthtries 6
+permitrootlogin without-password
+passwordauthentication no
+kbdinteractiveauthentication no
+x11forwarding yes
+allowtcpforwarding yes
+allowagentforwarding yes
+authenticationmethods any
+--- Firewall del sistema operativo (nft list table inet redes_hardening)
+Sin tabla redes_hardening: el sistema operativo no filtra nada
+----- APLICANDO
+==> Hardening de ip-10-10-0-116.ec2.internal (10.10.0.116) con el rol: dmz
+==> 1. Kernel (sysctl)
+==> 2. Servicios de red innecesarios
+   deshabilitado: rpcbind.socket
+   deshabilitado: rpcbind.service
+   deshabilitado: nfs-server.service
+   deshabilitado: rpc-statd.service
+   systemd-resolved: LLMNR y mDNS apagados (se conserva la config del DNS interno)
+   chronyd: puerto de control 323 cerrado
+==> 3. Firewall del SO: paquete nftables
+
+Installed:
+  iptables-libs-1.8.8-3.amzn2023.0.2.x86_64                                     
+  libnetfilter_conntrack-1.0.8-2.amzn2023.0.2.x86_64                            
+  libnfnetlink-1.0.1-19.amzn2023.0.2.x86_64                                     
+  libnftnl-1.2.2-2.amzn2023.0.2.x86_64                                          
+  nftables-1:1.0.4-3.amzn2023.0.3.x86_64                                        
+
+==> Reversion automatica programada en 300s (se cancela con --confirmar)
+==> 4. SSH
+==> 5. Firewall del SO: cargar reglas y dejarlas persistentes
+
+--- ip-10-10-0-116.ec2.internal | IP 10.10.0.116 | rol dmz
+--- Puertos en escucha (ss -tulpn)
+Netid State  Recv-Q Send-Q                  Local Address:Port Peer Address:PortProcess                                                                              
+udp   UNCONN 0      0                    10.10.0.116%ens5:68        0.0.0.0:*    users:(("systemd-network",pid=1733,fd=17))                                          
+udp   UNCONN 0      0      [fe80::ff:d7ff:fef9:d9eb]%ens5:546          [::]:*    users:(("systemd-network",pid=1733,fd=19))                                          
+tcp   LISTEN 0      128                           0.0.0.0:22        0.0.0.0:*    users:(("sshd",pid=1911,fd=7))                                                      
+tcp   LISTEN 0      511                           0.0.0.0:80        0.0.0.0:*    users:(("nginx",pid=26429,fd=9),("nginx",pid=26428,fd=9),("nginx",pid=4863,fd=9))   
+tcp   LISTEN 0      511                           0.0.0.0:443       0.0.0.0:*    users:(("nginx",pid=26429,fd=16),("nginx",pid=26428,fd=16),("nginx",pid=4863,fd=16))
+--- SSH efectivo (sshd -T)
+addressfamily inet
+logingracetime 30
+maxauthtries 3
+permitrootlogin no
+passwordauthentication no
+kbdinteractiveauthentication no
+x11forwarding no
+allowtcpforwarding no
+allowagentforwarding no
+allowusers ec2-user
+authenticationmethods publickey
+--- Firewall del sistema operativo (nft list table inet redes_hardening)
+table inet redes_hardening {
+	chain entrada {
+		type filter hook input priority filter; policy drop;
+		iif "lo" accept comment "trafico local"
+		ct state established,related accept comment "respuestas a conexiones permitidas"
+		ct state invalid drop
+		udp sport 67 udp dport 68 accept comment "DHCP de AWS"
+		udp sport 547 udp dport 546 accept comment "DHCPv6"
+		meta l4proto ipv6-icmp accept comment "ICMPv6 (descubrimiento de vecinos)"
+		icmp type { destination-unreachable, time-exceeded, parameter-problem } accept comment "errores ICMP y Path MTU"
+		ip saddr 10.10.0.32/27 tcp dport 22 accept comment "SSH solo desde TI (incluye eice-ti)"
+		tcp dport { 80, 443 } accept comment "web publica: HTTP (redireccion y ACME) y HTTPS"
+		ip saddr 10.10.0.32/27 icmp type echo-request accept comment "ping desde TI"
+		limit rate 10/minute log prefix "redes-hardening-drop: " level info
+		counter packets 0 bytes 0 drop comment "todo lo demas se descarta"
+	}
+
+	chain reenvio {
+		type filter hook forward priority filter; policy drop;
+	}
+
+	chain salida {
+		type filter hook output priority filter; policy accept;
+		ct state established,related accept
+		oif "lo" accept
+		udp dport 67 accept comment "DHCP de AWS"
+		ip daddr { 10.10.0.2, 169.254.169.253 } meta l4proto { tcp, udp } th dport 53 accept comment "DNS de AWS"
+		ip daddr { 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16 } counter packets 8 bytes 7172 reject with icmpx admin-prohibited comment "no iniciar nada hacia redes privadas"
+	}
+}
+
+Hardening aplicado. Confirmar desde una conexion SSH NUEVA: sudo bash hardening-fase2.sh --confirmar
+----- CONFIRMANDO con una conexion SSH nueva
+==> Hardening confirmado en ip-10-10-0-116.ec2.internal: la reversion automatica se cancelo
+----- DESPUES (verificacion)
+--- Verificacion de hardening en ip-10-10-0-116.ec2.internal (10.10.0.116), rol dmz
+  OK     SSH: sin login de root
+  OK     SSH: sin contrasenas
+  OK     SSH: sin keyboard-interactive
+  OK     SSH: solo llave publica
+  OK     SSH: maximo 3 intentos
+  OK     SSH: sin X11
+  OK     SSH: reenvio de puertos = no
+  OK     SSH: solo ec2-user
+  OK     SSH: solo IPv4
+  OK     nft: tabla redes_hardening cargada
+  OK     nft: politica de entrada DROP
+  OK     nft: salida hacia redes privadas bloqueada
+  OK     sysctl: sin ICMP redirects
+  OK     sysctl: sin source routing
+  OK     sysctl: SYN cookies
+  OK     nftables se carga al arrancar
+  OK     hardening confirmado (sin reversion pendiente)
+  OK     servicios innecesarios apagados
+  OK     solo escuchan puertos del rol (tcp:22 udp:68 udp:546 tcp:80 tcp:443)
+  OK     sshd no escucha en IPv6
+RESULTADO: hardening completo ESTADO=CUMPLE
+
+##### HARDENING: vm-intranet-rrhh (rol intranet)
+----- ANTES
+--- ip-10-10-0-101.ec2.internal | IP 10.10.0.101 | rol intranet
+--- Puertos en escucha (ss -tulpn)
+Netid State  Recv-Q Send-Q                  Local Address:Port Peer Address:PortProcess                                                                         
+udp   UNCONN 0      0                           127.0.0.1:323       0.0.0.0:*    users:(("chronyd",pid=1935,fd=5))                                              
+udp   UNCONN 0      0                    10.10.0.101%ens5:68        0.0.0.0:*    users:(("systemd-network",pid=1729,fd=17))                                     
+udp   UNCONN 0      0                               [::1]:323          [::]:*    users:(("chronyd",pid=1935,fd=6))                                              
+udp   UNCONN 0      0      [fe80::ff:f2ff:fea1:1887]%ens5:546          [::]:*    users:(("systemd-network",pid=1729,fd=19))                                     
+tcp   LISTEN 0      128                           0.0.0.0:22        0.0.0.0:*    users:(("sshd",pid=1906,fd=7))                                                 
+tcp   LISTEN 0      511                           0.0.0.0:80        0.0.0.0:*    users:(("nginx",pid=4301,fd=9),("nginx",pid=4300,fd=9),("nginx",pid=4299,fd=9))
+tcp   LISTEN 0      128                              [::]:22           [::]:*    users:(("sshd",pid=1906,fd=8))                                                 
+--- SSH efectivo (sshd -T)
+addressfamily any
+logingracetime 120
+maxauthtries 6
+permitrootlogin without-password
+passwordauthentication no
+kbdinteractiveauthentication no
+x11forwarding yes
+allowtcpforwarding yes
+allowagentforwarding yes
+authenticationmethods any
+--- Firewall del sistema operativo (nft list table inet redes_hardening)
+Sin tabla redes_hardening: el sistema operativo no filtra nada
+----- APLICANDO
+==> Hardening de ip-10-10-0-101.ec2.internal (10.10.0.101) con el rol: intranet
+==> 1. Kernel (sysctl)
+==> 2. Servicios de red innecesarios
+   deshabilitado: rpcbind.socket
+   deshabilitado: rpcbind.service
+   deshabilitado: nfs-server.service
+   deshabilitado: rpc-statd.service
+   systemd-resolved: LLMNR y mDNS apagados (se conserva la config del DNS interno)
+   chronyd: puerto de control 323 cerrado
+==> 3. Firewall del SO: paquete nftables
+
+Installed:
+  iptables-libs-1.8.8-3.amzn2023.0.2.x86_64                                     
+  libnetfilter_conntrack-1.0.8-2.amzn2023.0.2.x86_64                            
+  libnfnetlink-1.0.1-19.amzn2023.0.2.x86_64                                     
+  libnftnl-1.2.2-2.amzn2023.0.2.x86_64                                          
+  nftables-1:1.0.4-3.amzn2023.0.3.x86_64                                        
+
+==> Reversion automatica programada en 300s (se cancela con --confirmar)
+==> 4. SSH
+==> 5. Firewall del SO: cargar reglas y dejarlas persistentes
+
+--- ip-10-10-0-101.ec2.internal | IP 10.10.0.101 | rol intranet
+--- Puertos en escucha (ss -tulpn)
+Netid State  Recv-Q Send-Q                  Local Address:Port Peer Address:PortProcess                                                                         
+udp   UNCONN 0      0                    10.10.0.101%ens5:68        0.0.0.0:*    users:(("systemd-network",pid=1729,fd=17))                                     
+udp   UNCONN 0      0      [fe80::ff:f2ff:fea1:1887]%ens5:546          [::]:*    users:(("systemd-network",pid=1729,fd=19))                                     
+tcp   LISTEN 0      128                           0.0.0.0:22        0.0.0.0:*    users:(("sshd",pid=1906,fd=7))                                                 
+tcp   LISTEN 0      511                           0.0.0.0:80        0.0.0.0:*    users:(("nginx",pid=4301,fd=9),("nginx",pid=4300,fd=9),("nginx",pid=4299,fd=9))
+--- SSH efectivo (sshd -T)
+addressfamily inet
+logingracetime 30
+maxauthtries 3
+permitrootlogin no
+passwordauthentication no
+kbdinteractiveauthentication no
+x11forwarding no
+allowtcpforwarding no
+allowagentforwarding no
+allowusers ec2-user
+authenticationmethods publickey
+--- Firewall del sistema operativo (nft list table inet redes_hardening)
+table inet redes_hardening {
+	chain entrada {
+		type filter hook input priority filter; policy drop;
+		iif "lo" accept comment "trafico local"
+		ct state established,related accept comment "respuestas a conexiones permitidas"
+		ct state invalid drop
+		udp sport 67 udp dport 68 accept comment "DHCP de AWS"
+		udp sport 547 udp dport 546 accept comment "DHCPv6"
+		meta l4proto ipv6-icmp accept comment "ICMPv6 (descubrimiento de vecinos)"
+		icmp type { destination-unreachable, time-exceeded, parameter-problem } accept comment "errores ICMP y Path MTU"
+		ip saddr 10.10.0.32/27 tcp dport 22 accept comment "SSH solo desde TI (incluye eice-ti)"
+		ip saddr { 10.10.0.0/26, 10.10.0.96/28 } tcp dport 80 accept comment "intranet RRHH: Ventas, TI y Data Center"
+		ip saddr 10.10.0.32/27 icmp type echo-request accept comment "ping desde TI"
+		limit rate 10/minute log prefix "redes-hardening-drop: " level info
+		counter packets 0 bytes 0 drop comment "todo lo demas se descarta"
+	}
+
+	chain reenvio {
+		type filter hook forward priority filter; policy drop;
+	}
+
+	chain salida {
+		type filter hook output priority filter; policy accept;
+	}
+}
+
+Hardening aplicado. Confirmar desde una conexion SSH NUEVA: sudo bash hardening-fase2.sh --confirmar
+----- CONFIRMANDO con una conexion SSH nueva
+==> Hardening confirmado en ip-10-10-0-101.ec2.internal: la reversion automatica se cancelo
+----- DESPUES (verificacion)
+--- Verificacion de hardening en ip-10-10-0-101.ec2.internal (10.10.0.101), rol intranet
+  OK     SSH: sin login de root
+  OK     SSH: sin contrasenas
+  OK     SSH: sin keyboard-interactive
+  OK     SSH: solo llave publica
+  OK     SSH: maximo 3 intentos
+  OK     SSH: sin X11
+  OK     SSH: reenvio de puertos = no
+  OK     SSH: solo ec2-user
+  OK     SSH: solo IPv4
+  OK     nft: tabla redes_hardening cargada
+  OK     nft: politica de entrada DROP
+  OK     sysctl: sin ICMP redirects
+  OK     sysctl: sin source routing
+  OK     sysctl: SYN cookies
+  OK     nftables se carga al arrancar
+  OK     hardening confirmado (sin reversion pendiente)
+  OK     servicios innecesarios apagados
+  OK     solo escuchan puertos del rol (tcp:22 udp:68 udp:546 tcp:80)
+  OK     sshd no escucha en IPv6
+RESULTADO: hardening completo ESTADO=CUMPLE
+
+##### HARDENING: vm-datacenter-1 (rol datacenter)
+----- ANTES
+--- ip-10-10-0-109.ec2.internal | IP 10.10.0.109 | rol datacenter
+--- Puertos en escucha (ss -tulpn)
+Netid State  Recv-Q Send-Q                  Local Address:Port Peer Address:PortProcess                                    
+udp   UNCONN 0      0                           127.0.0.1:323       0.0.0.0:*    users:(("chronyd",pid=1932,fd=5))         
+udp   UNCONN 0      0                    10.10.0.109%ens5:68        0.0.0.0:*    users:(("systemd-network",pid=1726,fd=17))
+udp   UNCONN 0      0                               [::1]:323          [::]:*    users:(("chronyd",pid=1932,fd=6))         
+udp   UNCONN 0      0      [fe80::ff:ffff:fe9c:ee11]%ens5:546          [::]:*    users:(("systemd-network",pid=1726,fd=19))
+tcp   LISTEN 0      128                           0.0.0.0:22        0.0.0.0:*    users:(("sshd",pid=1903,fd=7))            
+tcp   LISTEN 0      128                              [::]:22           [::]:*    users:(("sshd",pid=1903,fd=8))            
+--- SSH efectivo (sshd -T)
+addressfamily any
+logingracetime 120
+maxauthtries 6
+permitrootlogin without-password
+passwordauthentication no
+kbdinteractiveauthentication no
+x11forwarding yes
+allowtcpforwarding yes
+allowagentforwarding yes
+authenticationmethods any
+--- Firewall del sistema operativo (nft list table inet redes_hardening)
+Sin tabla redes_hardening: el sistema operativo no filtra nada
+----- APLICANDO
+==> Hardening de ip-10-10-0-109.ec2.internal (10.10.0.109) con el rol: datacenter
+==> 1. Kernel (sysctl)
+==> 2. Servicios de red innecesarios
+   deshabilitado: rpcbind.socket
+   deshabilitado: rpcbind.service
+   deshabilitado: nfs-server.service
+   deshabilitado: rpc-statd.service
+   systemd-resolved: LLMNR y mDNS apagados (se conserva la config del DNS interno)
+   chronyd: puerto de control 323 cerrado
+==> 3. Firewall del SO: paquete nftables
+
+Installed:
+  iptables-libs-1.8.8-3.amzn2023.0.2.x86_64                                     
+  libnetfilter_conntrack-1.0.8-2.amzn2023.0.2.x86_64                            
+  libnfnetlink-1.0.1-19.amzn2023.0.2.x86_64                                     
+  libnftnl-1.2.2-2.amzn2023.0.2.x86_64                                          
+  nftables-1:1.0.4-3.amzn2023.0.3.x86_64                                        
+
+==> Reversion automatica programada en 300s (se cancela con --confirmar)
+==> 4. SSH
+==> 5. Firewall del SO: cargar reglas y dejarlas persistentes
+
+--- ip-10-10-0-109.ec2.internal | IP 10.10.0.109 | rol datacenter
+--- Puertos en escucha (ss -tulpn)
+Netid State  Recv-Q Send-Q                  Local Address:Port Peer Address:PortProcess                                    
+udp   UNCONN 0      0                    10.10.0.109%ens5:68        0.0.0.0:*    users:(("systemd-network",pid=1726,fd=17))
+udp   UNCONN 0      0      [fe80::ff:ffff:fe9c:ee11]%ens5:546          [::]:*    users:(("systemd-network",pid=1726,fd=19))
+tcp   LISTEN 0      128                           0.0.0.0:22        0.0.0.0:*    users:(("sshd",pid=1903,fd=7))            
+--- SSH efectivo (sshd -T)
+addressfamily inet
+logingracetime 30
+maxauthtries 3
+permitrootlogin no
+passwordauthentication no
+kbdinteractiveauthentication no
+x11forwarding no
+allowtcpforwarding no
+allowagentforwarding no
+allowusers ec2-user
+authenticationmethods publickey
+--- Firewall del sistema operativo (nft list table inet redes_hardening)
+table inet redes_hardening {
+	chain entrada {
+		type filter hook input priority filter; policy drop;
+		iif "lo" accept comment "trafico local"
+		ct state established,related accept comment "respuestas a conexiones permitidas"
+		ct state invalid drop
+		udp sport 67 udp dport 68 accept comment "DHCP de AWS"
+		udp sport 547 udp dport 546 accept comment "DHCPv6"
+		meta l4proto ipv6-icmp accept comment "ICMPv6 (descubrimiento de vecinos)"
+		icmp type { destination-unreachable, time-exceeded, parameter-problem } accept comment "errores ICMP y Path MTU"
+		ip saddr 10.10.0.32/27 tcp dport 22 accept comment "SSH solo desde TI (incluye eice-ti)"
+		ip saddr 10.10.0.0/24 icmp type echo-request accept comment "ping desde la red interna"
+		limit rate 10/minute log prefix "redes-hardening-drop: " level info
+		counter packets 0 bytes 0 drop comment "todo lo demas se descarta"
+	}
+
+	chain reenvio {
+		type filter hook forward priority filter; policy drop;
+	}
+
+	chain salida {
+		type filter hook output priority filter; policy accept;
+	}
+}
+
+Hardening aplicado. Confirmar desde una conexion SSH NUEVA: sudo bash hardening-fase2.sh --confirmar
+----- CONFIRMANDO con una conexion SSH nueva
+==> Hardening confirmado en ip-10-10-0-109.ec2.internal: la reversion automatica se cancelo
+----- DESPUES (verificacion)
+--- Verificacion de hardening en ip-10-10-0-109.ec2.internal (10.10.0.109), rol datacenter
+  OK     SSH: sin login de root
+  OK     SSH: sin contrasenas
+  OK     SSH: sin keyboard-interactive
+  OK     SSH: solo llave publica
+  OK     SSH: maximo 3 intentos
+  OK     SSH: sin X11
+  OK     SSH: reenvio de puertos = no
+  OK     SSH: solo ec2-user
+  OK     SSH: solo IPv4
+  OK     nft: tabla redes_hardening cargada
+  OK     nft: politica de entrada DROP
+  OK     sysctl: sin ICMP redirects
+  OK     sysctl: sin source routing
+  OK     sysctl: SYN cookies
+  OK     nftables se carga al arrancar
+  OK     hardening confirmado (sin reversion pendiente)
+  OK     servicios innecesarios apagados
+  OK     solo escuchan puertos del rol (tcp:22 udp:68 udp:546)
+  OK     sshd no escucha en IPv6
+RESULTADO: hardening completo ESTADO=CUMPLE
+
+##### HARDENING: vm-visitas-1 (rol visitas)
+----- ANTES
+--- ip-10-10-0-84.ec2.internal | IP 10.10.0.84 | rol visitas
+--- Puertos en escucha (ss -tulpn)
+Netid State  Recv-Q Send-Q                  Local Address:Port Peer Address:PortProcess                                    
+udp   UNCONN 0      0                           127.0.0.1:323       0.0.0.0:*    users:(("chronyd",pid=1931,fd=5))         
+udp   UNCONN 0      0                     10.10.0.84%ens5:68        0.0.0.0:*    users:(("systemd-network",pid=1723,fd=17))
+udp   UNCONN 0      0                               [::1]:323          [::]:*    users:(("chronyd",pid=1931,fd=6))         
+udp   UNCONN 0      0      [fe80::ff:fbff:fe45:6a1b]%ens5:546          [::]:*    users:(("systemd-network",pid=1723,fd=19))
+tcp   LISTEN 0      128                           0.0.0.0:22        0.0.0.0:*    users:(("sshd",pid=1902,fd=7))            
+tcp   LISTEN 0      128                              [::]:22           [::]:*    users:(("sshd",pid=1902,fd=8))            
+--- SSH efectivo (sshd -T)
+addressfamily any
+logingracetime 120
+maxauthtries 6
+permitrootlogin without-password
+passwordauthentication no
+kbdinteractiveauthentication no
+x11forwarding yes
+allowtcpforwarding yes
+allowagentforwarding yes
+authenticationmethods any
+--- Firewall del sistema operativo (nft list table inet redes_hardening)
+Sin tabla redes_hardening: el sistema operativo no filtra nada
+----- APLICANDO
+==> Hardening de ip-10-10-0-84.ec2.internal (10.10.0.84) con el rol: visitas
+==> 1. Kernel (sysctl)
+==> 2. Servicios de red innecesarios
+   deshabilitado: rpcbind.socket
+   deshabilitado: rpcbind.service
+   deshabilitado: nfs-server.service
+   deshabilitado: rpc-statd.service
+   systemd-resolved: LLMNR y mDNS apagados (se conserva la config del DNS interno)
+   chronyd: puerto de control 323 cerrado
+==> 3. Firewall del SO: paquete nftables
+
+Installed:
+  iptables-libs-1.8.8-3.amzn2023.0.2.x86_64                                     
+  libnetfilter_conntrack-1.0.8-2.amzn2023.0.2.x86_64                            
+  libnfnetlink-1.0.1-19.amzn2023.0.2.x86_64                                     
+  libnftnl-1.2.2-2.amzn2023.0.2.x86_64                                          
+  nftables-1:1.0.4-3.amzn2023.0.3.x86_64                                        
+
+==> Reversion automatica programada en 300s (se cancela con --confirmar)
+==> 4. SSH
+==> 5. Firewall del SO: cargar reglas y dejarlas persistentes
+
+--- ip-10-10-0-84.ec2.internal | IP 10.10.0.84 | rol visitas
+--- Puertos en escucha (ss -tulpn)
+Netid State  Recv-Q Send-Q                  Local Address:Port Peer Address:PortProcess                                    
+udp   UNCONN 0      0                     10.10.0.84%ens5:68        0.0.0.0:*    users:(("systemd-network",pid=1723,fd=17))
+udp   UNCONN 0      0      [fe80::ff:fbff:fe45:6a1b]%ens5:546          [::]:*    users:(("systemd-network",pid=1723,fd=19))
+tcp   LISTEN 0      128                           0.0.0.0:22        0.0.0.0:*    users:(("sshd",pid=1902,fd=7))            
+--- SSH efectivo (sshd -T)
+addressfamily inet
+logingracetime 30
+maxauthtries 3
+permitrootlogin no
+passwordauthentication no
+kbdinteractiveauthentication no
+x11forwarding no
+allowtcpforwarding no
+allowagentforwarding no
+allowusers ec2-user
+authenticationmethods publickey
+--- Firewall del sistema operativo (nft list table inet redes_hardening)
+table inet redes_hardening {
+	chain entrada {
+		type filter hook input priority filter; policy drop;
+		iif "lo" accept comment "trafico local"
+		ct state established,related accept comment "respuestas a conexiones permitidas"
+		ct state invalid drop
+		udp sport 67 udp dport 68 accept comment "DHCP de AWS"
+		udp sport 547 udp dport 546 accept comment "DHCPv6"
+		meta l4proto ipv6-icmp accept comment "ICMPv6 (descubrimiento de vecinos)"
+		icmp type { destination-unreachable, time-exceeded, parameter-problem } accept comment "errores ICMP y Path MTU"
+		ip saddr 10.10.0.32/27 tcp dport 22 accept comment "SSH solo desde TI (incluye eice-ti)"
+		ip saddr 10.10.0.32/27 icmp type echo-request accept comment "ping desde TI"
+		limit rate 10/minute log prefix "redes-hardening-drop: " level info
+		counter packets 0 bytes 0 drop comment "todo lo demas se descarta"
+	}
+
+	chain reenvio {
+		type filter hook forward priority filter; policy drop;
+	}
+
+	chain salida {
+		type filter hook output priority filter; policy accept;
+		ct state established,related accept
+		oif "lo" accept
+		udp dport 67 accept comment "DHCP de AWS"
+		ip daddr { 10.10.0.2, 169.254.169.253 } meta l4proto { tcp, udp } th dport 53 accept comment "DNS de AWS"
+		ip daddr { 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16 } counter packets 6 bytes 4220 reject with icmpx admin-prohibited comment "no iniciar nada hacia redes privadas"
+	}
+}
+
+Hardening aplicado. Confirmar desde una conexion SSH NUEVA: sudo bash hardening-fase2.sh --confirmar
+----- CONFIRMANDO con una conexion SSH nueva
+==> Hardening confirmado en ip-10-10-0-84.ec2.internal: la reversion automatica se cancelo
+----- DESPUES (verificacion)
+--- Verificacion de hardening en ip-10-10-0-84.ec2.internal (10.10.0.84), rol visitas
+  OK     SSH: sin login de root
+  OK     SSH: sin contrasenas
+  OK     SSH: sin keyboard-interactive
+  OK     SSH: solo llave publica
+  OK     SSH: maximo 3 intentos
+  OK     SSH: sin X11
+  OK     SSH: reenvio de puertos = no
+  OK     SSH: solo ec2-user
+  OK     SSH: solo IPv4
+  OK     nft: tabla redes_hardening cargada
+  OK     nft: politica de entrada DROP
+  OK     nft: salida hacia redes privadas bloqueada
+  OK     sysctl: sin ICMP redirects
+  OK     sysctl: sin source routing
+  OK     sysctl: SYN cookies
+  OK     nftables se carga al arrancar
+  OK     hardening confirmado (sin reversion pendiente)
+  OK     servicios innecesarios apagados
+  OK     solo escuchan puertos del rol (tcp:22 udp:68 udp:546)
+  OK     sshd no escucha en IPv6
+RESULTADO: hardening completo ESTADO=CUMPLE
+
+##### HARDENING: vm-ventas-2 (rol ventas)
+----- ANTES
+--- ip-10-10-0-21.ec2.internal | IP 10.10.0.21 | rol ventas
+--- Puertos en escucha (ss -tulpn)
+Netid State  Recv-Q Send-Q                  Local Address:Port Peer Address:PortProcess                                    
+udp   UNCONN 0      0                           127.0.0.1:323       0.0.0.0:*    users:(("chronyd",pid=1930,fd=5))         
+udp   UNCONN 0      0                     10.10.0.21%ens5:68        0.0.0.0:*    users:(("systemd-network",pid=1723,fd=17))
+udp   UNCONN 0      0                               [::1]:323          [::]:*    users:(("chronyd",pid=1930,fd=6))         
+udp   UNCONN 0      0      [fe80::ff:f3ff:fe0a:8d37]%ens5:546          [::]:*    users:(("systemd-network",pid=1723,fd=19))
+tcp   LISTEN 0      128                           0.0.0.0:22        0.0.0.0:*    users:(("sshd",pid=1901,fd=7))            
+tcp   LISTEN 0      128                              [::]:22           [::]:*    users:(("sshd",pid=1901,fd=8))            
+--- SSH efectivo (sshd -T)
+addressfamily any
+logingracetime 120
+maxauthtries 6
+permitrootlogin without-password
+passwordauthentication no
+kbdinteractiveauthentication no
+x11forwarding yes
+allowtcpforwarding yes
+allowagentforwarding yes
+authenticationmethods any
+--- Firewall del sistema operativo (nft list table inet redes_hardening)
+Sin tabla redes_hardening: el sistema operativo no filtra nada
+----- APLICANDO
+==> Hardening de ip-10-10-0-21.ec2.internal (10.10.0.21) con el rol: ventas
+==> 1. Kernel (sysctl)
+==> 2. Servicios de red innecesarios
+   deshabilitado: rpcbind.socket
+   deshabilitado: rpcbind.service
+   deshabilitado: nfs-server.service
+   deshabilitado: rpc-statd.service
+   systemd-resolved: LLMNR y mDNS apagados (se conserva la config del DNS interno)
+   chronyd: puerto de control 323 cerrado
+==> 3. Firewall del SO: paquete nftables
+
+Installed:
+  iptables-libs-1.8.8-3.amzn2023.0.2.x86_64                                     
+  libnetfilter_conntrack-1.0.8-2.amzn2023.0.2.x86_64                            
+  libnfnetlink-1.0.1-19.amzn2023.0.2.x86_64                                     
+  libnftnl-1.2.2-2.amzn2023.0.2.x86_64                                          
+  nftables-1:1.0.4-3.amzn2023.0.3.x86_64                                        
+
+==> Reversion automatica programada en 300s (se cancela con --confirmar)
+==> 4. SSH
+==> 5. Firewall del SO: cargar reglas y dejarlas persistentes
+
+--- ip-10-10-0-21.ec2.internal | IP 10.10.0.21 | rol ventas
+--- Puertos en escucha (ss -tulpn)
+Netid State  Recv-Q Send-Q                  Local Address:Port Peer Address:PortProcess                                    
+udp   UNCONN 0      0                     10.10.0.21%ens5:68        0.0.0.0:*    users:(("systemd-network",pid=1723,fd=17))
+udp   UNCONN 0      0      [fe80::ff:f3ff:fe0a:8d37]%ens5:546          [::]:*    users:(("systemd-network",pid=1723,fd=19))
+tcp   LISTEN 0      128                           0.0.0.0:22        0.0.0.0:*    users:(("sshd",pid=1901,fd=7))            
+--- SSH efectivo (sshd -T)
+addressfamily inet
+logingracetime 30
+maxauthtries 3
+permitrootlogin no
+passwordauthentication no
+kbdinteractiveauthentication no
+x11forwarding no
+allowtcpforwarding no
+allowagentforwarding no
+allowusers ec2-user
+authenticationmethods publickey
+--- Firewall del sistema operativo (nft list table inet redes_hardening)
+table inet redes_hardening {
+	chain entrada {
+		type filter hook input priority filter; policy drop;
+		iif "lo" accept comment "trafico local"
+		ct state established,related accept comment "respuestas a conexiones permitidas"
+		ct state invalid drop
+		udp sport 67 udp dport 68 accept comment "DHCP de AWS"
+		udp sport 547 udp dport 546 accept comment "DHCPv6"
+		meta l4proto ipv6-icmp accept comment "ICMPv6 (descubrimiento de vecinos)"
+		icmp type { destination-unreachable, time-exceeded, parameter-problem } accept comment "errores ICMP y Path MTU"
+		ip saddr 10.10.0.32/27 tcp dport 22 accept comment "SSH solo desde TI (incluye eice-ti)"
+		ip saddr 10.10.0.0/24 icmp type echo-request accept comment "ping desde la red interna"
+		limit rate 10/minute log prefix "redes-hardening-drop: " level info
+		counter packets 0 bytes 0 drop comment "todo lo demas se descarta"
+	}
+
+	chain reenvio {
+		type filter hook forward priority filter; policy drop;
+	}
+
+	chain salida {
+		type filter hook output priority filter; policy accept;
+	}
+}
+
+Hardening aplicado. Confirmar desde una conexion SSH NUEVA: sudo bash hardening-fase2.sh --confirmar
+----- CONFIRMANDO con una conexion SSH nueva
+==> Hardening confirmado en ip-10-10-0-21.ec2.internal: la reversion automatica se cancelo
+----- DESPUES (verificacion)
+--- Verificacion de hardening en ip-10-10-0-21.ec2.internal (10.10.0.21), rol ventas
+  OK     SSH: sin login de root
+  OK     SSH: sin contrasenas
+  OK     SSH: sin keyboard-interactive
+  OK     SSH: solo llave publica
+  OK     SSH: maximo 3 intentos
+  OK     SSH: sin X11
+  OK     SSH: reenvio de puertos = no
+  OK     SSH: solo ec2-user
+  OK     SSH: solo IPv4
+  OK     nft: tabla redes_hardening cargada
+  OK     nft: politica de entrada DROP
+  OK     sysctl: sin ICMP redirects
+  OK     sysctl: sin source routing
+  OK     sysctl: SYN cookies
+  OK     nftables se carga al arrancar
+  OK     hardening confirmado (sin reversion pendiente)
+  OK     servicios innecesarios apagados
+  OK     solo escuchan puertos del rol (tcp:22 udp:68 udp:546)
+  OK     sshd no escucha en IPv6
+RESULTADO: hardening completo ESTADO=CUMPLE
+
+##### HARDENING: vm-ventas-1 (rol ventas)
+----- ANTES
+--- ip-10-10-0-28.ec2.internal | IP 10.10.0.28 | rol ventas
+--- Puertos en escucha (ss -tulpn)
+Netid State  Recv-Q Send-Q                  Local Address:Port Peer Address:PortProcess                                    
+udp   UNCONN 0      0                     10.10.0.28%ens5:68        0.0.0.0:*    users:(("systemd-network",pid=1723,fd=17))
+udp   UNCONN 0      0                           127.0.0.1:323       0.0.0.0:*    users:(("chronyd",pid=1931,fd=5))         
+udp   UNCONN 0      0                               [::1]:323          [::]:*    users:(("chronyd",pid=1931,fd=6))         
+udp   UNCONN 0      0      [fe80::ff:ebff:fe3e:6c51]%ens5:546          [::]:*    users:(("systemd-network",pid=1723,fd=19))
+tcp   LISTEN 0      128                           0.0.0.0:22        0.0.0.0:*    users:(("sshd",pid=1901,fd=7))            
+tcp   LISTEN 0      128                              [::]:22           [::]:*    users:(("sshd",pid=1901,fd=8))            
+--- SSH efectivo (sshd -T)
+addressfamily any
+logingracetime 120
+maxauthtries 6
+permitrootlogin without-password
+passwordauthentication no
+kbdinteractiveauthentication no
+x11forwarding yes
+allowtcpforwarding yes
+allowagentforwarding yes
+authenticationmethods any
+--- Firewall del sistema operativo (nft list table inet redes_hardening)
+Sin tabla redes_hardening: el sistema operativo no filtra nada
+----- APLICANDO
+==> Hardening de ip-10-10-0-28.ec2.internal (10.10.0.28) con el rol: ventas
+==> 1. Kernel (sysctl)
+==> 2. Servicios de red innecesarios
+   deshabilitado: rpcbind.socket
+   deshabilitado: rpcbind.service
+   deshabilitado: nfs-server.service
+   deshabilitado: rpc-statd.service
+   systemd-resolved: LLMNR y mDNS apagados (se conserva la config del DNS interno)
+   chronyd: puerto de control 323 cerrado
+==> 3. Firewall del SO: paquete nftables
+
+Installed:
+  iptables-libs-1.8.8-3.amzn2023.0.2.x86_64                                     
+  libnetfilter_conntrack-1.0.8-2.amzn2023.0.2.x86_64                            
+  libnfnetlink-1.0.1-19.amzn2023.0.2.x86_64                                     
+  libnftnl-1.2.2-2.amzn2023.0.2.x86_64                                          
+  nftables-1:1.0.4-3.amzn2023.0.3.x86_64                                        
+
+==> Reversion automatica programada en 300s (se cancela con --confirmar)
+==> 4. SSH
+==> 5. Firewall del SO: cargar reglas y dejarlas persistentes
+
+--- ip-10-10-0-28.ec2.internal | IP 10.10.0.28 | rol ventas
+--- Puertos en escucha (ss -tulpn)
+Netid State  Recv-Q Send-Q                  Local Address:Port Peer Address:PortProcess                                    
+udp   UNCONN 0      0                     10.10.0.28%ens5:68        0.0.0.0:*    users:(("systemd-network",pid=1723,fd=17))
+udp   UNCONN 0      0      [fe80::ff:ebff:fe3e:6c51]%ens5:546          [::]:*    users:(("systemd-network",pid=1723,fd=19))
+tcp   LISTEN 0      128                           0.0.0.0:22        0.0.0.0:*    users:(("sshd",pid=1901,fd=7))            
+--- SSH efectivo (sshd -T)
+addressfamily inet
+logingracetime 30
+maxauthtries 3
+permitrootlogin no
+passwordauthentication no
+kbdinteractiveauthentication no
+x11forwarding no
+allowtcpforwarding no
+allowagentforwarding no
+allowusers ec2-user
+authenticationmethods publickey
+--- Firewall del sistema operativo (nft list table inet redes_hardening)
+table inet redes_hardening {
+	chain entrada {
+		type filter hook input priority filter; policy drop;
+		iif "lo" accept comment "trafico local"
+		ct state established,related accept comment "respuestas a conexiones permitidas"
+		ct state invalid drop
+		udp sport 67 udp dport 68 accept comment "DHCP de AWS"
+		udp sport 547 udp dport 546 accept comment "DHCPv6"
+		meta l4proto ipv6-icmp accept comment "ICMPv6 (descubrimiento de vecinos)"
+		icmp type { destination-unreachable, time-exceeded, parameter-problem } accept comment "errores ICMP y Path MTU"
+		ip saddr 10.10.0.32/27 tcp dport 22 accept comment "SSH solo desde TI (incluye eice-ti)"
+		ip saddr 10.10.0.0/24 icmp type echo-request accept comment "ping desde la red interna"
+		limit rate 10/minute log prefix "redes-hardening-drop: " level info
+		counter packets 0 bytes 0 drop comment "todo lo demas se descarta"
+	}
+
+	chain reenvio {
+		type filter hook forward priority filter; policy drop;
+	}
+
+	chain salida {
+		type filter hook output priority filter; policy accept;
+	}
+}
+
+Hardening aplicado. Confirmar desde una conexion SSH NUEVA: sudo bash hardening-fase2.sh --confirmar
+----- CONFIRMANDO con una conexion SSH nueva
+==> Hardening confirmado en ip-10-10-0-28.ec2.internal: la reversion automatica se cancelo
+----- DESPUES (verificacion)
+--- Verificacion de hardening en ip-10-10-0-28.ec2.internal (10.10.0.28), rol ventas
+  OK     SSH: sin login de root
+  OK     SSH: sin contrasenas
+  OK     SSH: sin keyboard-interactive
+  OK     SSH: solo llave publica
+  OK     SSH: maximo 3 intentos
+  OK     SSH: sin X11
+  OK     SSH: reenvio de puertos = no
+  OK     SSH: solo ec2-user
+  OK     SSH: solo IPv4
+  OK     nft: tabla redes_hardening cargada
+  OK     nft: politica de entrada DROP
+  OK     sysctl: sin ICMP redirects
+  OK     sysctl: sin source routing
+  OK     sysctl: SYN cookies
+  OK     nftables se carga al arrancar
+  OK     hardening confirmado (sin reversion pendiente)
+  OK     servicios innecesarios apagados
+  OK     solo escuchan puertos del rol (tcp:22 udp:68 udp:546)
+  OK     sshd no escucha en IPv6
+RESULTADO: hardening completo ESTADO=CUMPLE
+
+##### vm-dns-fase2 no encontrada o con otra llave; aplicar a mano: sudo bash hardening-fase2.sh dns
+
+##### HARDENING: vm-ti-1 (rol ti)
+----- ANTES
+--- ip-10-10-0-60.ec2.internal | IP 10.10.0.60 | rol ti
+--- Puertos en escucha (ss -tulpn)
+Netid State  Recv-Q Send-Q                  Local Address:Port Peer Address:PortProcess                                    
+udp   UNCONN 0      0                     10.10.0.60%ens5:68        0.0.0.0:*    users:(("systemd-network",pid=1733,fd=17))
+udp   UNCONN 0      0                           127.0.0.1:323       0.0.0.0:*    users:(("chronyd",pid=1941,fd=5))         
+udp   UNCONN 0      0      [fe80::ff:ceff:fef3:7725]%ens5:546          [::]:*    users:(("systemd-network",pid=1733,fd=19))
+udp   UNCONN 0      0                               [::1]:323          [::]:*    users:(("chronyd",pid=1941,fd=6))         
+tcp   LISTEN 0      128                           0.0.0.0:22        0.0.0.0:*    users:(("sshd",pid=1912,fd=7))            
+tcp   LISTEN 0      128                              [::]:22           [::]:*    users:(("sshd",pid=1912,fd=8))            
+--- SSH efectivo (sshd -T)
+addressfamily any
+logingracetime 120
+maxauthtries 6
+permitrootlogin without-password
+passwordauthentication no
+kbdinteractiveauthentication no
+x11forwarding yes
+allowtcpforwarding yes
+allowagentforwarding yes
+authenticationmethods any
+--- Firewall del sistema operativo (nft list table inet redes_hardening)
+Sin tabla redes_hardening: el sistema operativo no filtra nada
+----- APLICANDO
+==> Hardening de ip-10-10-0-60.ec2.internal (10.10.0.60) con el rol: ti
+==> 1. Kernel (sysctl)
+==> 2. Servicios de red innecesarios
+   deshabilitado: rpcbind.socket
+   deshabilitado: rpcbind.service
+   deshabilitado: nfs-server.service
+   deshabilitado: rpc-statd.service
+   systemd-resolved: LLMNR y mDNS apagados (se conserva la config del DNS interno)
+   chronyd: puerto de control 323 cerrado
+==> 3. Firewall del SO: paquete nftables
+
+Installed:
+  iptables-libs-1.8.8-3.amzn2023.0.2.x86_64                                     
+  libnetfilter_conntrack-1.0.8-2.amzn2023.0.2.x86_64                            
+  libnfnetlink-1.0.1-19.amzn2023.0.2.x86_64                                     
+  libnftnl-1.2.2-2.amzn2023.0.2.x86_64                                          
+  nftables-1:1.0.4-3.amzn2023.0.3.x86_64                                        
+
+==> Reversion automatica programada en 300s (se cancela con --confirmar)
+==> 4. SSH
+==> 5. Firewall del SO: cargar reglas y dejarlas persistentes
+
+--- ip-10-10-0-60.ec2.internal | IP 10.10.0.60 | rol ti
+--- Puertos en escucha (ss -tulpn)
+Netid State  Recv-Q Send-Q                  Local Address:Port Peer Address:PortProcess                                    
+udp   UNCONN 0      0                     10.10.0.60%ens5:68        0.0.0.0:*    users:(("systemd-network",pid=1733,fd=17))
+udp   UNCONN 0      0      [fe80::ff:ceff:fef3:7725]%ens5:546          [::]:*    users:(("systemd-network",pid=1733,fd=19))
+tcp   LISTEN 0      128                           0.0.0.0:22        0.0.0.0:*    users:(("sshd",pid=1912,fd=7))            
+--- SSH efectivo (sshd -T)
+addressfamily inet
+logingracetime 30
+maxauthtries 3
+permitrootlogin no
+passwordauthentication no
+kbdinteractiveauthentication no
+x11forwarding no
+allowtcpforwarding yes
+allowagentforwarding no
+allowusers ec2-user
+authenticationmethods publickey
+--- Firewall del sistema operativo (nft list table inet redes_hardening)
+table inet redes_hardening {
+	chain entrada {
+		type filter hook input priority filter; policy drop;
+		iif "lo" accept comment "trafico local"
+		ct state established,related accept comment "respuestas a conexiones permitidas"
+		ct state invalid drop
+		udp sport 67 udp dport 68 accept comment "DHCP de AWS"
+		udp sport 547 udp dport 546 accept comment "DHCPv6"
+		meta l4proto ipv6-icmp accept comment "ICMPv6 (descubrimiento de vecinos)"
+		icmp type { destination-unreachable, time-exceeded, parameter-problem } accept comment "errores ICMP y Path MTU"
+		ip saddr 10.10.0.32/27 tcp dport 22 accept comment "SSH solo desde TI (incluye eice-ti)"
+		ip saddr 10.10.0.32/27 icmp type echo-request accept comment "ping desde TI"
+		limit rate 10/minute log prefix "redes-hardening-drop: " level info
+		counter packets 0 bytes 0 drop comment "todo lo demas se descarta"
+	}
+
+	chain reenvio {
+		type filter hook forward priority filter; policy drop;
+	}
+
+	chain salida {
+		type filter hook output priority filter; policy accept;
+	}
+}
+
+Hardening aplicado. Confirmar desde una conexion SSH NUEVA: sudo bash hardening-fase2.sh --confirmar
+----- CONFIRMANDO con una conexion SSH nueva
+==> Hardening confirmado en ip-10-10-0-60.ec2.internal: la reversion automatica se cancelo
+----- DESPUES (verificacion)
+--- Verificacion de hardening en ip-10-10-0-60.ec2.internal (10.10.0.60), rol ti
+  OK     SSH: sin login de root
+  OK     SSH: sin contrasenas
+  OK     SSH: sin keyboard-interactive
+  OK     SSH: solo llave publica
+  OK     SSH: maximo 3 intentos
+  OK     SSH: sin X11
+  OK     SSH: reenvio de puertos = yes
+  OK     SSH: solo ec2-user
+  OK     SSH: solo IPv4
+  OK     nft: tabla redes_hardening cargada
+  OK     nft: politica de entrada DROP
+  OK     sysctl: sin ICMP redirects
+  OK     sysctl: sin source routing
+  OK     sysctl: SYN cookies
+  OK     nftables se carga al arrancar
+  OK     hardening confirmado (sin reversion pendiente)
+  OK     servicios innecesarios apagados
+  OK     solo escuchan puertos del rol (tcp:22 udp:68 udp:546)
+  OK     sshd no escucha en IPv6
+RESULTADO: hardening completo ESTADO=CUMPLE
+
+==> Hardening aplicado en: vm-dmz-web vm-intranet-rrhh vm-datacenter-1 vm-visitas-1 vm-ventas-2 vm-ventas-1 vm-ti-1
+Siguiente paso: bash escanear-puertos-fase2.sh despues && bash pruebas-visitas-hardening-fase2.sh | tee /home/cloudshell-user/evidencia-aws/pruebas-visitas-hardening-fase2.log

@@ -1,0 +1,189 @@
+{
+    "SecurityGroups": [
+        {
+            "GroupId": "sg-0c0d6a1212b7895d2",
+            "IpPermissionsEgress": [
+                {
+                    "IpProtocol": "-1",
+                    "UserIdGroupPairs": [],
+                    "IpRanges": [
+                        {
+                            "CidrIp": "0.0.0.0/0"
+                        }
+                    ],
+                    "Ipv6Ranges": [],
+                    "PrefixListIds": []
+                }
+            ],
+            "Tags": [
+                {
+                    "Key": "Name",
+                    "Value": "sg-intranet-rrhh"
+                },
+                {
+                    "Key": "Project",
+                    "Value": "proyecto-redes"
+                }
+            ],
+            "VpcId": "vpc-02251b0b1ccc6414f",
+            "SecurityGroupArn": "arn:aws:ec2:us-east-1:597936860595:security-group/sg-0c0d6a1212b7895d2",
+            "OwnerId": "597936860595",
+            "GroupName": "intranet-rrhh-sg",
+            "Description": "Intranet RRHH: HTTP interno, SSH desde Ventas y TI",
+            "IpPermissions": [
+                {
+                    "IpProtocol": "tcp",
+                    "FromPort": 80,
+                    "ToPort": 80,
+                    "UserIdGroupPairs": [],
+                    "IpRanges": [
+                        {
+                            "Description": "http-ventas",
+                            "CidrIp": "10.10.0.0/27"
+                        },
+                        {
+                            "Description": "http-ti",
+                            "CidrIp": "10.10.0.32/27"
+                        },
+                        {
+                            "Description": "http-datacenter",
+                            "CidrIp": "10.10.0.96/28"
+                        }
+                    ],
+                    "Ipv6Ranges": [],
+                    "PrefixListIds": []
+                },
+                {
+                    "IpProtocol": "tcp",
+                    "FromPort": 22,
+                    "ToPort": 22,
+                    "UserIdGroupPairs": [],
+                    "IpRanges": [
+                        {
+                            "Description": "ssh-ti",
+                            "CidrIp": "10.10.0.32/27"
+                        }
+                    ],
+                    "Ipv6Ranges": [],
+                    "PrefixListIds": []
+                }
+            ]
+        },
+        {
+            "GroupId": "sg-0fa80d561eece0d1d",
+            "IpPermissionsEgress": [
+                {
+                    "IpProtocol": "-1",
+                    "UserIdGroupPairs": [],
+                    "IpRanges": [
+                        {
+                            "CidrIp": "0.0.0.0/0"
+                        }
+                    ],
+                    "Ipv6Ranges": [],
+                    "PrefixListIds": []
+                }
+            ],
+            "Tags": [
+                {
+                    "Key": "Name",
+                    "Value": "sg-startup"
+                },
+                {
+                    "Key": "Project",
+                    "Value": "proyecto-redes"
+                }
+            ],
+            "VpcId": "vpc-02251b0b1ccc6414f",
+            "SecurityGroupArn": "arn:aws:ec2:us-east-1:597936860595:security-group/sg-0fa80d561eece0d1d",
+            "OwnerId": "597936860595",
+            "GroupName": "startup-sg",
+            "Description": "SSH desde CloudShell, SSH e ICMP internos",
+            "IpPermissions": [
+                {
+                    "IpProtocol": "tcp",
+                    "FromPort": 22,
+                    "ToPort": 22,
+                    "UserIdGroupPairs": [],
+                    "IpRanges": [
+                        {
+                            "Description": "ssh-admin-ti-y-eice",
+                            "CidrIp": "10.10.0.32/27"
+                        }
+                    ],
+                    "Ipv6Ranges": [],
+                    "PrefixListIds": []
+                },
+                {
+                    "IpProtocol": "icmp",
+                    "FromPort": -1,
+                    "ToPort": -1,
+                    "UserIdGroupPairs": [],
+                    "IpRanges": [
+                        {
+                            "Description": "icmp-vpc",
+                            "CidrIp": "10.10.0.0/24"
+                        }
+                    ],
+                    "Ipv6Ranges": [],
+                    "PrefixListIds": []
+                }
+            ]
+        },
+        {
+            "GroupId": "sg-0ad5fbc128c9d2489",
+            "IpPermissionsEgress": [
+                {
+                    "IpProtocol": "-1",
+                    "UserIdGroupPairs": [],
+                    "IpRanges": [
+                        {
+                            "CidrIp": "0.0.0.0/0"
+                        }
+                    ],
+                    "Ipv6Ranges": [],
+                    "PrefixListIds": []
+                }
+            ],
+            "VpcId": "vpc-07bae1df766c61794",
+            "SecurityGroupArn": "arn:aws:ec2:us-east-1:597936860595:security-group/sg-0ad5fbc128c9d2489",
+            "OwnerId": "597936860595",
+            "GroupName": "dns-fase2",
+            "Description": "DNS privado de RRHH",
+            "IpPermissions": [
+                {
+                    "IpProtocol": "tcp",
+                    "FromPort": 53,
+                    "ToPort": 53,
+                    "UserIdGroupPairs": [],
+                    "IpRanges": [
+                        {
+                            "CidrIp": "10.10.0.0/27"
+                        },
+                        {
+                            "CidrIp": "10.10.0.32/27"
+                        }
+                    ],
+                    "Ipv6Ranges": [],
+                    "PrefixListIds": []
+                },
+                {
+                    "IpProtocol": "udp",
+                    "FromPort": 53,
+                    "ToPort": 53,
+                    "UserIdGroupPairs": [],
+                    "IpRanges": [
+                        {
+                            "CidrIp": "10.10.0.0/27"
+                        },
+                        {
+                            "CidrIp": "10.10.0.32/27"
+                        }
+                    ],
+                    "Ipv6Ranges": [],
+                    "PrefixListIds": []
+                }
+            ]
+        }
+    ]
+}

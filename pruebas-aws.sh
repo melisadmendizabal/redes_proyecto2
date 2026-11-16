@@ -12,6 +12,18 @@ VPC_CIDR="10.10.0.0/24"
 KEYFILE="$HOME/proyecto-key.pem"
 SSH_OPTS="-i $KEYFILE -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeout=10 -o LogLevel=ERROR"
 
+# Fase 1. Este script abre SSH desde CloudShell y desde toda la VPC en startup-sg, y espera
+# que Ventas llegue a TI. Despues de las reglas y el hardening de la Fase 2 eso ya no es asi:
+# correrlo desharia el hardening. Las pruebas vigentes son pruebas-*-fase2.sh.
+SG_VISITAS=$(aws ec2 describe-security-groups --filters "Name=tag:Project,Values=$PROJ" "Name=group-name,Values=visitas-sg" \
+              --query 'SecurityGroups[0].GroupId' --output text 2>/dev/null)
+if [ "${FORZAR:-0}" != 1 ] && [[ "$SG_VISITAS" == sg-* ]]; then
+  echo "La Fase 2 (hardening) ya esta aplicada: este script de la Fase 1 reabriria SSH en startup-sg."
+  echo "Usa pruebas-reglas-fase2.sh, pruebas-intranet-fase2.sh, pruebas-dmz-fase2.sh y pruebas-visitas-hardening-fase2.sh."
+  echo "Para correrlo de todas formas: FORZAR=1 bash pruebas-aws.sh"
+  exit 1
+fi
+
 attr () {   # $1 = nombre de la instancia, $2 = atributo (PrivateIpAddress / PublicIpAddress)
   aws ec2 describe-instances \
     --filters "Name=tag:Name,Values=$1" "Name=tag:Project,Values=$PROJ" "Name=instance-state-name,Values=running" \

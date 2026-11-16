@@ -1,0 +1,71 @@
+---
+config:
+  flowchart:
+    subGraphTitleMargin:
+      top: 8
+      bottom: 52
+    nodeSpacing: 40
+    rankSpacing: 60
+---
+flowchart TB
+  internet(("Internet"))
+  duck["DuckDNS<br/>mansiondeldisfraz.duckdns.org<br/>A → Elastic IP"]
+  cloudshell["AWS CloudShell<br/>(administración)"]
+
+  subgraph vpc["vpc-startup · 10.10.0.0/24 · us-east-1a"]
+    direction TB
+    igw{{"igw-startup<br/>Internet Gateway"}}
+
+    subgraph fila1[" "]
+      direction LR
+      subgraph dmz["DMZ · 10.10.0.112/28<br/>NACL nacl-dmz"]
+        web["vm-dmz-web · 10.10.0.116<br/>Nginx + Let's Encrypt<br/>Elastic IP · SG dmz-web-sg<br/>80 → 301 · 443"]
+      end
+      subgraph ventas["Ventas · 10.10.0.0/27<br/>NACL nacl-internas"]
+        v1["vm-ventas-1 · .28"]
+        v2["vm-ventas-2 · .21"]
+      end
+      subgraph visitas["Visitas · 10.10.0.64/27<br/>NACL nacl-visitas"]
+        vv["vm-visitas-1 · .84<br/>SG visitas-sg<br/>solo Internet"]
+      end
+    end
+
+    subgraph fila2[" "]
+      direction LR
+      subgraph ti["TI · 10.10.0.32/27<br/>NACL nacl-ti"]
+        t1["vm-ti-1 · .60<br/>SG ti-sg"]
+        eice["eice-ti<br/>Instance Connect Endpoint<br/>SSH 22 hacia todas las VM"]
+      end
+      subgraph dc["Data Center · 10.10.0.96/28<br/>NACL nacl-internas"]
+        rrhh["vm-intranet-rrhh · .101<br/>Nginx rrhh.mansiondeldisfraz.local<br/>SG intranet-rrhh-sg"]
+        d1["vm-datacenter-1 · .109"]
+      end
+      s3[("vpce-s3<br/>endpoint S3<br/>(dnf sin Internet)")]
+    end
+  end
+
+  subgraph vpcdns["vpc-dns-fase2 · 10.10.1.0/28"]
+    dns["vm-dns-fase2 · 10.10.1.4<br/>BIND · zona mansiondeldisfraz.local"]
+  end
+
+  internet <--> igw
+  duck -.-> internet
+  igw -- "80 / 443" --> web
+  igw <--> ventas
+  igw <--> visitas
+  cloudshell -- "túnel SSH" --> eice
+  ventas -- "HTTP 80" --> rrhh
+  t1 -- "HTTP 80" --> rrhh
+  ventas -- "DNS 53 · peering" --> dns
+  t1 -- "DNS 53 · peering" --> dns
+  dc -.-> s3
+  ti -.-> s3
+
+  classDef bloqueada fill:#fdecea,stroke:#c0392b,color:#000
+  classDef publica fill:#e8f1fb,stroke:#2471a3,color:#000
+  classDef interna fill:#eaf7ef,stroke:#1e8449,color:#000
+  classDef fila fill:none,stroke:none
+  class visitas bloqueada
+  class dmz publica
+  class ventas,ti,dc,vpcdns interna
+  class fila1,fila2 fila

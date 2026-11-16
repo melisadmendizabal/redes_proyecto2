@@ -1,0 +1,170 @@
+{
+    "Reservations": [
+        {
+            "ReservationId": "r-0cc0bae638326eba3",
+            "OwnerId": "597936860595",
+            "Groups": [],
+            "Instances": [
+                {
+                    "Architecture": "x86_64",
+                    "BlockDeviceMappings": [
+                        {
+                            "DeviceName": "/dev/xvda",
+                            "Ebs": {
+                                "AttachTime": "2026-10-23T02:39:18+00:00",
+                                "DeleteOnTermination": true,
+                                "Status": "attached",
+                                "VolumeId": "vol-0ecad1712f6484856",
+                                "EbsCardIndex": 0
+                            }
+                        }
+                    ],
+                    "ClientToken": "9e095725-4d51-428b-bf97-8258eb47f3c4",
+                    "EbsOptimized": false,
+                    "EnaSupport": true,
+                    "Hypervisor": "xen",
+                    "NetworkInterfaces": [
+                        {
+                            "Association": {
+                                "IpOwnerId": "amazon",
+                                "PublicDnsName": "ec2-98-80-196-104.compute-1.amazonaws.com",
+                                "PublicIp": "98.80.196.104"
+                            },
+                            "Attachment": {
+                                "AttachTime": "2026-10-23T02:39:17+00:00",
+                                "AttachmentId": "eni-attach-01b1e57cb4e961fc6",
+                                "DeleteOnTermination": true,
+                                "DeviceIndex": 0,
+                                "Status": "attached",
+                                "NetworkCardIndex": 0
+                            },
+                            "Description": "",
+                            "Groups": [
+                                {
+                                    "GroupId": "sg-0731735fddcdb42d8",
+                                    "GroupName": "visitas-sg"
+                                }
+                            ],
+                            "Ipv6Addresses": [],
+                            "MacAddress": "02:ff:fb:45:6a:1b",
+                            "NetworkInterfaceId": "eni-05ab607592a19da21",
+                            "OwnerId": "597936860595",
+                            "PrivateDnsName": "ip-10-10-0-84.ec2.internal",
+                            "PrivateIpAddress": "10.10.0.84",
+                            "PrivateIpAddresses": [
+                                {
+                                    "Association": {
+                                        "IpOwnerId": "amazon",
+                                        "PublicDnsName": "ec2-98-80-196-104.compute-1.amazonaws.com",
+                                        "PublicIp": "98.80.196.104"
+                                    },
+                                    "Primary": true,
+                                    "PrivateDnsName": "ip-10-10-0-84.ec2.internal",
+                                    "PrivateIpAddress": "10.10.0.84"
+                                }
+                            ],
+                            "SourceDestCheck": true,
+                            "Status": "in-use",
+                            "SubnetId": "subnet-0afbdffb68119a7f9",
+                            "VpcId": "vpc-02251b0b1ccc6414f",
+                            "InterfaceType": "interface",
+                            "Operator": {
+                                "Managed": false
+                            }
+                        }
+                    ],
+                    "RootDeviceName": "/dev/xvda",
+                    "RootDeviceType": "ebs",
+                    "SecurityGroups": [
+                        {
+                            "GroupId": "sg-0731735fddcdb42d8",
+                            "GroupName": "visitas-sg"
+                        }
+                    ],
+                    "SourceDestCheck": true,
+                    "Tags": [
+                        {
+                            "Key": "Name",
+                            "Value": "vm-visitas-1"
+                        },
+                        {
+                            "Key": "Project",
+                            "Value": "proyecto-redes"
+                        }
+                    ],
+                    "VirtualizationType": "hvm",
+                    "CpuOptions": {
+                        "CoreCount": 1,
+                        "ThreadsPerCore": 2
+                    },
+                    "CapacityReservationSpecification": {
+                        "CapacityReservationPreference": "open"
+                    },
+                    "HibernationOptions": {
+                        "Configured": false
+                    },
+                    "MetadataOptions": {
+                        "State": "applied",
+                        "HttpTokens": "required",
+                        "HttpPutResponseHopLimit": 2,
+                        "HttpEndpoint": "enabled",
+                        "HttpProtocolIpv6": "disabled",
+                        "InstanceMetadataTags": "disabled"
+                    },
+                    "EnclaveOptions": {
+                        "Enabled": false
+                    },
+                    "BootMode": "uefi-preferred",
+                    "PlatformDetails": "Linux/UNIX",
+                    "UsageOperation": "RunInstances",
+                    "UsageOperationUpdateTime": "2026-10-23T02:39:17+00:00",
+                    "PrivateDnsNameOptions": {
+                        "HostnameType": "ip-name",
+                        "EnableResourceNameDnsARecord": false,
+                        "EnableResourceNameDnsAAAARecord": false
+                    },
+                    "MaintenanceOptions": {
+                        "AutoRecovery": "default",
+                        "RebootMigration": "default"
+                    },
+                    "CurrentInstanceBootMode": "uefi",
+                    "NetworkPerformanceOptions": {
+                        "BandwidthWeighting": "default"
+                    },
+                    "Operator": {
+                        "Managed": false,
+                        "HiddenByDefault": false
+                    },
+                    "SecondaryInterfaces": [],
+                    "InstanceId": "i-0b1ccae38843e210e",
+                    "ImageId": "ami-08c46876c64a927b8",
+                    "State": {
+                        "Code": 16,
+                        "Name": "running"
+                    },
+                    "PrivateDnsName": "ip-10-10-0-84.ec2.internal",
+                    "PublicDnsName": "ec2-98-80-196-104.compute-1.amazonaws.com",
+                    "StateTransitionReason": "",
+                    "KeyName": "proyecto-key",
+                    "AmiLaunchIndex": 0,
+                    "ProductCodes": [],
+                    "InstanceType": "t3.micro",
+                    "LaunchTime": "2026-10-23T02:39:17+00:00",
+                    "Placement": {
+                        "AvailabilityZoneId": "use1-az1",
+                        "GroupName": "",
+                        "Tenancy": "default",
+                        "AvailabilityZone": "us-east-1a"
+                    },
+                    "Monitoring": {
+                        "State": "disabled"
+                    },
+                    "SubnetId": "subnet-0afbdffb68119a7f9",
+                    "VpcId": "vpc-02251b0b1ccc6414f",
+                    "PrivateIpAddress": "10.10.0.84",
+                    "PublicIpAddress": "98.80.196.104"
+                }
+            ]
+        }
+    ]
+}

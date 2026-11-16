@@ -21,32 +21,26 @@ attr () {   # $1 = nombre de la instancia, $2 = atributo (PrivateIpAddress / Pub
 existe () { [ -n "$1" ] && [ "$1" != "None" ]; }
 
 N=0
-remoto () {   # $1 = titulo, $2 = IP para SSH, $3 = comando, $4 = "salto" si la VM es privada
+# Todas las VM se acceden por el EC2 Instance Connect Endpoint de TI (eice-ti). Desde la Fase 2
+# (reglas de la persona 3 y hardening de la persona 5) ya no se salta por vm-ventas-1.
+remoto () {   # $1 = titulo, $2 = instance-id, $3 = comando
   N=$((N + 1))
   echo
   echo "##### PRUEBA INTRANET $N: $1"
-  if [ "${4:-}" = "salto" ]; then
-    ssh $SSH_OPTS -o "ProxyCommand=ssh $SSH_OPTS -W %h:%p ec2-user@$V1_PUB" ec2-user@"$2" "$3"
-  else
-    ssh $SSH_OPTS ec2-user@"$2" "$3"
-  fi
+  ssh $SSH_OPTS -o "ProxyCommand=aws ec2-instance-connect open-tunnel --instance-id $2" ec2-user@"$2" "$3" </dev/null
 }
 
 [ -f "$KEYFILE" ] || { echo "Falta $KEYFILE en CloudShell"; exit 1; }
 
-# Si CloudShell cambio de IP publica, la autoriza en el SG de la Fase 1 para entrar al bastion (idempotente)
-SG=$(aws ec2 describe-security-groups \
-      --filters "Name=tag:Project,Values=$PROJ" "Name=group-name,Values=startup-sg" \
-      --query "SecurityGroups[0].GroupId" --output text)
+# IP publica de CloudShell (solo se muestra en la prueba desde Internet)
 MYIP=$(curl -s https://checkip.amazonaws.com | tr -d '[:space:]')
-aws ec2 authorize-security-group-ingress --group-id "$SG" --protocol tcp --port 22 \
-  --cidr "${MYIP}/32" >/dev/null 2>&1 || true
 
-V1_PUB=$(attr vm-ventas-1 PublicIpAddress)
-V2_PUB=$(attr vm-ventas-2 PublicIpAddress)
-TI_PRIV=$(attr vm-ti-1 PrivateIpAddress)
-DC_PRIV=$(attr vm-datacenter-1 PrivateIpAddress)
-VV_PUB=$(attr vm-visitas-1 PublicIpAddress)
+V1_ID=$(attr vm-ventas-1 InstanceId)
+V2_ID=$(attr vm-ventas-2 InstanceId)
+TI_ID=$(attr vm-ti-1 InstanceId)
+DC_ID=$(attr vm-datacenter-1 InstanceId)
+VV_ID=$(attr vm-visitas-1 InstanceId)
+IN_ID=$(attr vm-intranet-rrhh InstanceId)
 IN_PRIV=$(attr vm-intranet-rrhh PrivateIpAddress)
 IN_PUB=$(attr vm-intranet-rrhh PublicIpAddress)
 existe "$IN_PRIV" || { echo "No hay vm-intranet-rrhh en ejecucion. Ejecuta: bash desplegar-intranet-fase2.sh"; exit 1; }
@@ -54,8 +48,8 @@ echo "vm-intranet-rrhh = $IN_PRIV (IP publica: $IN_PUB)"
 
 echo "==> Esperando a que Nginx quede activo en la intranet"
 for _ in $(seq 1 15); do
-  ssh $SSH_OPTS -o "ProxyCommand=ssh $SSH_OPTS -W %h:%p ec2-user@$V1_PUB" ec2-user@"$IN_PRIV" \
-    "systemctl is-active --quiet nginx" 2>/dev/null && break
+  ssh $SSH_OPTS -o "ProxyCommand=aws ec2-instance-connect open-tunnel --instance-id $IN_ID" ec2-user@"$IN_ID" \
+    "systemctl is-active --quiet nginx" </dev/null 2>/dev/null && break
   sleep 20
 done
 
@@ -65,13 +59,13 @@ CMD_IP="hostname; hostname -I; echo '--- HTTP (nombre fijado a $IN_PRIV con --re
 CMD_HOST="hostname; hostname -I; echo '--- HTTP a la IP sin el nombre rrhh'; curl -sS --max-time 5 -o /dev/null -w 'HTTP %{http_code}\n' http://$IN_PRIV/ || echo 'RESULTADO: Nginx cerro la conexion (return 444) porque el Host no es $FQDN'"
 CMD_BLOQUEO="hostname; hostname -I; echo '--- DNS'; getent hosts $FQDN || echo '$FQDN no resuelve'; echo '--- HTTP'; curl -sS --max-time 5 --resolve $FQDN:80:$IN_PRIV -o /dev/null -w 'HTTP %{http_code}\n' http://$FQDN/ || echo 'RESULTADO: sin respuesta, trafico bloqueado'"
 
-remoto "vm-intranet-rrhh: Nginx activo, configuracion valida y virtual host" "$IN_PRIV" "$CMD_SERVIDOR" salto
-remoto "vm-ventas-1 -> http://$FQDN (DEBE funcionar)" "$V1_PUB" "$CMD_NOMBRE"
-existe "$V2_PUB"  && remoto "vm-ventas-2 -> http://$FQDN (DEBE funcionar)" "$V2_PUB" "$CMD_NOMBRE"
-existe "$TI_PRIV" && remoto "vm-ti-1 -> http://$FQDN (DEBE funcionar)" "$TI_PRIV" "$CMD_NOMBRE" salto
-existe "$DC_PRIV" && remoto "vm-datacenter-1 -> intranet por IP (DEBE funcionar)" "$DC_PRIV" "$CMD_IP" salto
-remoto "vm-ventas-1 -> http://$IN_PRIV sin el nombre (DEBE FALLAR: Nginx solo atiende a $FQDN)" "$V1_PUB" "$CMD_HOST"
-existe "$VV_PUB"  && remoto "vm-visitas-1 -> intranet (DEBE FALLAR: la NACL y el SG bloquean Visitas)" "$VV_PUB" "$CMD_BLOQUEO"
+remoto "vm-intranet-rrhh: Nginx activo, configuracion valida y virtual host" "$IN_ID" "$CMD_SERVIDOR"
+remoto "vm-ventas-1 -> http://$FQDN (DEBE funcionar)" "$V1_ID" "$CMD_NOMBRE"
+existe "$V2_ID" && remoto "vm-ventas-2 -> http://$FQDN (DEBE funcionar)" "$V2_ID" "$CMD_NOMBRE"
+existe "$TI_ID" && remoto "vm-ti-1 -> http://$FQDN (DEBE funcionar)" "$TI_ID" "$CMD_NOMBRE"
+existe "$DC_ID" && remoto "vm-datacenter-1 -> intranet por IP (DEBE funcionar)" "$DC_ID" "$CMD_IP"
+remoto "vm-ventas-1 -> http://$IN_PRIV sin el nombre (DEBE FALLAR: Nginx solo atiende a $FQDN)" "$V1_ID" "$CMD_HOST"
+existe "$VV_ID" && remoto "vm-visitas-1 -> intranet (DEBE FALLAR: la NACL y el SG bloquean Visitas)" "$VV_ID" "$CMD_BLOQUEO"
 
 N=$((N + 1))
 echo

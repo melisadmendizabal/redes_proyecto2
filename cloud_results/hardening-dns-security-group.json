@@ -1,0 +1,73 @@
+{
+    "SecurityGroups": [
+        {
+            "GroupId": "sg-0ad5fbc128c9d2489",
+            "IpPermissionsEgress": [
+                {
+                    "IpProtocol": "-1",
+                    "UserIdGroupPairs": [],
+                    "IpRanges": [
+                        {
+                            "CidrIp": "0.0.0.0/0"
+                        }
+                    ],
+                    "Ipv6Ranges": [],
+                    "PrefixListIds": []
+                }
+            ],
+            "VpcId": "vpc-07bae1df766c61794",
+            "SecurityGroupArn": "arn:aws:ec2:us-east-1:597936860595:security-group/sg-0ad5fbc128c9d2489",
+            "OwnerId": "597936860595",
+            "GroupName": "dns-fase2",
+            "Description": "DNS privado de RRHH",
+            "IpPermissions": [
+                {
+                    "IpProtocol": "tcp",
+                    "FromPort": 22,
+                    "ToPort": 22,
+                    "UserIdGroupPairs": [],
+                    "IpRanges": [
+                        {
+                            "Description": "ssh-admin-ti",
+                            "CidrIp": "10.10.0.32/27"
+                        }
+                    ],
+                    "Ipv6Ranges": [],
+                    "PrefixListIds": []
+                },
+                {
+                    "IpProtocol": "tcp",
+                    "FromPort": 53,
+                    "ToPort": 53,
+                    "UserIdGroupPairs": [],
+                    "IpRanges": [
+                        {
+                            "CidrIp": "10.10.0.0/27"
+                        },
+                        {
+                            "CidrIp": "10.10.0.32/27"
+                        }
+                    ],
+                    "Ipv6Ranges": [],
+                    "PrefixListIds": []
+                },
+                {
+                    "IpProtocol": "udp",
+                    "FromPort": 53,
+                    "ToPort": 53,
+                    "UserIdGroupPairs": [],
+                    "IpRanges": [
+                        {
+                            "CidrIp": "10.10.0.0/27"
+                        },
+                        {
+                            "CidrIp": "10.10.0.32/27"
+                        }
+                    ],
+                    "Ipv6Ranges": [],
+                    "PrefixListIds": []
+                }
+            ]
+        }
+    ]
+}

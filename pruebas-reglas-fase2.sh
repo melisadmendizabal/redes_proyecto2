@@ -4,8 +4,8 @@
 # despues de reglas-internas-fase2.sh. Toma screenshot de cada salida.
 # Uso:   bash pruebas-reglas-fase2.sh | tee ~/evidencia-aws/pruebas-reglas-fase2.log
 #
-# Las VM publicas (Ventas, Visitas) se acceden por SSH directo. Las privadas
-# (TI, Data Center, intranet) por el EC2 Instance Connect Endpoint de TI.
+# Todas las VM se acceden por el EC2 Instance Connect Endpoint de TI (eice-ti).
+# Desde el hardening (persona 5) ya no se acepta SSH desde Internet en Ventas ni Visitas.
 # =====================================================================
 set -uo pipefail
 export AWS_PAGER=""
@@ -23,15 +23,11 @@ attr () {   # $1 = nombre de la instancia, $2 = atributo (InstanceId / PrivateIp
 existe () { [ -n "$1" ] && [ "$1" != "None" ]; }
 
 N=0
-remoto () {   # $1 = titulo, $2 = IP publica o instance-id, $3 = comando, $4 = "eice" si la VM es privada
+remoto () {   # $1 = titulo, $2 = instance-id, $3 = comando (el 4.o argumento "eice" ya no hace falta)
   N=$((N + 1))
   echo
   echo "##### PRUEBA REGLAS $N: $1"
-  if [ "${4:-}" = "eice" ]; then
-    ssh $SSH_OPTS -o "ProxyCommand=aws ec2-instance-connect open-tunnel --instance-id $2" ec2-user@"$2" "$3"
-  else
-    ssh $SSH_OPTS ec2-user@"$2" "$3"
-  fi
+  ssh $SSH_OPTS -o "ProxyCommand=aws ec2-instance-connect open-tunnel --instance-id $2" ec2-user@"$2" "$3" </dev/null
 }
 
 # Comandos remotos. Cada uno termina en una linea "RESULTADO: ..." facil de leer en la captura.
@@ -52,19 +48,14 @@ c_intranet () {   # $1 = "" para resolver por DNS, o la IP para fijar el nombre 
 
 [ -f "$KEYFILE" ] || { echo "Falta $KEYFILE en CloudShell"; exit 1; }
 
-# Si CloudShell cambio de IP publica, la autoriza en startup-sg para entrar a Ventas y Visitas (idempotente)
-SG=$(aws ec2 describe-security-groups \
-      --filters "Name=tag:Project,Values=$PROJ" "Name=group-name,Values=startup-sg" \
-      --query "SecurityGroups[0].GroupId" --output text)
+# IP publica de CloudShell (solo se muestra en la prueba desde Internet; ya no se abre SSH para ella)
 MYIP=$(curl -s https://checkip.amazonaws.com | tr -d '[:space:]')
-aws ec2 authorize-security-group-ingress --group-id "$SG" --protocol tcp --port 22 \
-  --cidr "${MYIP}/32" >/dev/null 2>&1 || true
 
-V1_PUB=$(attr vm-ventas-1 PublicIpAddress);  V1_PRIV=$(attr vm-ventas-1 PrivateIpAddress)
-V2_PUB=$(attr vm-ventas-2 PublicIpAddress)
+V1_ID=$(attr vm-ventas-1 InstanceId);        V1_PRIV=$(attr vm-ventas-1 PrivateIpAddress)
+V2_ID=$(attr vm-ventas-2 InstanceId)
 TI_ID=$(attr vm-ti-1 InstanceId);            TI_PRIV=$(attr vm-ti-1 PrivateIpAddress)
 DC_ID=$(attr vm-datacenter-1 InstanceId);    DC_PRIV=$(attr vm-datacenter-1 PrivateIpAddress)
-VV_PUB=$(attr vm-visitas-1 PublicIpAddress); VV_PRIV=$(attr vm-visitas-1 PrivateIpAddress)
+VV_ID=$(attr vm-visitas-1 InstanceId);       VV_PRIV=$(attr vm-visitas-1 PrivateIpAddress)
 IN_ID=$(attr vm-intranet-rrhh InstanceId);   IN_PRIV=$(attr vm-intranet-rrhh PrivateIpAddress)
 VPC=$(aws ec2 describe-vpcs --filters "Name=tag:Project,Values=$PROJ" --query "Vpcs[0].VpcId" --output text)
 DMZ_PRIV=$(aws ec2 describe-instances --filters "Name=vpc-id,Values=$VPC" "Name=instance-state-name,Values=running" \
@@ -98,17 +89,17 @@ existe "$IN_PRIV" && remoto "vm-ti-1 -> http://$FQDN (TI -> intranet, DEBE funci
 existe "$DMZ_PRIV" && remoto "vm-ti-1 -> DMZ $DMZ_PRIV puerto 80 (TI -> DMZ, DEBE funcionar si la DMZ acepta a TI)" "$TI_ID" "$(c_tcp "$DMZ_PRIV" 80)" eice
 
 # ---------- B. Otras subredes -> TI (DEBEN FALLAR) ----------
-remoto "vm-ventas-1 -> vm-ti-1 (Ventas -> TI, DEBE FALLAR)" "$V1_PUB" "$(c_ping_ssh "$TI_PRIV")"
-existe "$V2_PUB"  && remoto "vm-ventas-2 -> vm-ti-1 (Ventas -> TI, DEBE FALLAR)" "$V2_PUB" "$(c_ping "$TI_PRIV")"
+remoto "vm-ventas-1 -> vm-ti-1 (Ventas -> TI, DEBE FALLAR)" "$V1_ID" "$(c_ping_ssh "$TI_PRIV")"
+existe "$V2_ID"  && remoto "vm-ventas-2 -> vm-ti-1 (Ventas -> TI, DEBE FALLAR)" "$V2_ID" "$(c_ping "$TI_PRIV")"
 existe "$DC_ID"   && remoto "vm-datacenter-1 -> vm-ti-1 (Data Center -> TI, DEBE FALLAR)" "$DC_ID" "$(c_ping_ssh "$TI_PRIV")" eice
 existe "$IN_ID"   && remoto "vm-intranet-rrhh -> vm-ti-1 (servidor del Data Center -> TI, DEBE FALLAR)" "$IN_ID" "$(c_ping_ssh "$TI_PRIV")" eice
-existe "$VV_PUB"  && remoto "vm-visitas-1 -> vm-ti-1 (Visitas -> TI, DEBE FALLAR)" "$VV_PUB" "$(c_ping_ssh "$TI_PRIV")"
+existe "$VV_ID"  && remoto "vm-visitas-1 -> vm-ti-1 (Visitas -> TI, DEBE FALLAR)" "$VV_ID" "$(c_ping_ssh "$TI_PRIV")"
 
 # ---------- C. Intranet: demas subredes si, Visitas e Internet no ----------
 if existe "$IN_PRIV"; then
-  remoto "vm-ventas-1 -> http://$FQDN (Ventas -> intranet, DEBE funcionar)" "$V1_PUB" "$(c_intranet "")"
+  remoto "vm-ventas-1 -> http://$FQDN (Ventas -> intranet, DEBE funcionar)" "$V1_ID" "$(c_intranet "")"
   existe "$DC_ID"  && remoto "vm-datacenter-1 -> intranet (Data Center -> intranet, DEBE funcionar)" "$DC_ID" "$(c_intranet "$IN_PRIV")" eice
-  existe "$VV_PUB" && remoto "vm-visitas-1 -> intranet (Visitas -> intranet, DEBE FALLAR)" "$VV_PUB" "$(c_intranet "$IN_PRIV")"
+  existe "$VV_ID" && remoto "vm-visitas-1 -> intranet (Visitas -> intranet, DEBE FALLAR)" "$VV_ID" "$(c_intranet "$IN_PRIV")"
 
   N=$((N + 1))
   echo

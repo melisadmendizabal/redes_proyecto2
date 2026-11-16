@@ -1,0 +1,416 @@
+Escaneo 'despues' - 2026-11-16 05:44 UTC - puertos TCP 22,53,80,111,443,953,3306,5355,8080
+Publicas: vm-ventas-1 44.211.50.162 | vm-ventas-2 34.201.42.174 | vm-visitas-1 98.80.196.104 | vm-dmz-web 32.200.48.146
+Privadas: ventas-1 10.10.0.28 | ventas-2 10.10.0.21 | ti-1 10.10.0.60 | visitas-1 10.10.0.84 | datacenter-1 10.10.0.109 | intranet 10.10.0.101 | dmz 10.10.0.116 | dns 10.10.1.4
+
+##### PUERTOS (despues): Internet (CloudShell 44.212.10.214) -> IP publicas
+Starting Nmap 7.93 ( https://nmap.org ) at 2026-11-16 05:44 UTC
+Nmap scan report for 44.211.50.162
+Host is up.
+
+PORT     STATE    SERVICE
+22/tcp   filtered ssh
+53/tcp   filtered domain
+80/tcp   filtered http
+111/tcp  filtered rpcbind
+443/tcp  filtered https
+953/tcp  filtered rndc
+3306/tcp filtered mysql
+5355/tcp filtered llmnr
+8080/tcp filtered http-proxy
+
+Nmap scan report for 34.201.42.174
+Host is up.
+
+PORT     STATE    SERVICE
+22/tcp   filtered ssh
+53/tcp   filtered domain
+80/tcp   filtered http
+111/tcp  filtered rpcbind
+443/tcp  filtered https
+953/tcp  filtered rndc
+3306/tcp filtered mysql
+5355/tcp filtered llmnr
+8080/tcp filtered http-proxy
+
+Nmap scan report for 98.80.196.104
+Host is up.
+
+PORT     STATE    SERVICE
+22/tcp   filtered ssh
+53/tcp   filtered domain
+80/tcp   filtered http
+111/tcp  filtered rpcbind
+443/tcp  filtered https
+953/tcp  filtered rndc
+3306/tcp filtered mysql
+5355/tcp filtered llmnr
+8080/tcp filtered http-proxy
+
+Nmap scan report for 32.200.48.146
+Host is up (0.00057s latency).
+
+PORT     STATE    SERVICE
+22/tcp   filtered ssh
+53/tcp   filtered domain
+80/tcp   open     http
+111/tcp  filtered rpcbind
+443/tcp  open     https
+953/tcp  filtered rndc
+3306/tcp filtered mysql
+5355/tcp filtered llmnr
+8080/tcp filtered http-proxy
+
+Nmap done: 4 IP addresses (4 hosts up) scanned in 1.43 seconds
+
+##### PUERTOS (despues): vm-ventas-1 (Ventas) -> red interna
+origen: ip-10-10-0-28.ec2.internal 10.10.0.28 
+Starting Nmap 7.93 ( https://nmap.org ) at 2026-11-16 05:45 UTC
+Nmap scan report for 10.10.0.28
+Host is up (0.00015s latency).
+
+PORT     STATE  SERVICE
+22/tcp   open   ssh
+53/tcp   closed domain
+80/tcp   closed http
+111/tcp  closed rpcbind
+443/tcp  closed https
+953/tcp  closed rndc
+3306/tcp closed mysql
+5355/tcp closed llmnr
+8080/tcp closed http-proxy
+
+Nmap scan report for 10.10.0.21
+Host is up.
+
+PORT     STATE    SERVICE
+22/tcp   filtered ssh
+53/tcp   filtered domain
+80/tcp   filtered http
+111/tcp  filtered rpcbind
+443/tcp  filtered https
+953/tcp  filtered rndc
+3306/tcp filtered mysql
+5355/tcp filtered llmnr
+8080/tcp filtered http-proxy
+
+Nmap scan report for 10.10.0.60
+Host is up.
+
+PORT     STATE    SERVICE
+22/tcp   filtered ssh
+53/tcp   filtered domain
+80/tcp   filtered http
+111/tcp  filtered rpcbind
+443/tcp  filtered https
+953/tcp  filtered rndc
+3306/tcp filtered mysql
+5355/tcp filtered llmnr
+8080/tcp filtered http-proxy
+
+Nmap scan report for 10.10.0.84
+Host is up.
+
+PORT     STATE    SERVICE
+22/tcp   filtered ssh
+53/tcp   filtered domain
+80/tcp   filtered http
+111/tcp  filtered rpcbind
+443/tcp  filtered https
+953/tcp  filtered rndc
+3306/tcp filtered mysql
+5355/tcp filtered llmnr
+8080/tcp filtered http-proxy
+
+Nmap scan report for 10.10.0.109
+Host is up.
+
+PORT     STATE    SERVICE
+22/tcp   filtered ssh
+53/tcp   filtered domain
+80/tcp   filtered http
+111/tcp  filtered rpcbind
+443/tcp  filtered https
+953/tcp  filtered rndc
+3306/tcp filtered mysql
+5355/tcp filtered llmnr
+8080/tcp filtered http-proxy
+
+Nmap scan report for 10.10.0.101
+Host is up (0.0025s latency).
+
+PORT     STATE    SERVICE
+22/tcp   filtered ssh
+53/tcp   filtered domain
+80/tcp   open     http
+111/tcp  filtered rpcbind
+443/tcp  filtered https
+953/tcp  filtered rndc
+3306/tcp filtered mysql
+5355/tcp filtered llmnr
+8080/tcp filtered http-proxy
+
+Nmap scan report for 10.10.0.116
+Host is up.
+
+PORT     STATE    SERVICE
+22/tcp   filtered ssh
+53/tcp   filtered domain
+80/tcp   filtered http
+111/tcp  filtered rpcbind
+443/tcp  filtered https
+953/tcp  filtered rndc
+3306/tcp filtered mysql
+5355/tcp filtered llmnr
+8080/tcp filtered http-proxy
+
+Nmap scan report for 10.10.1.4
+Host is up (0.0054s latency).
+
+PORT     STATE    SERVICE
+22/tcp   filtered ssh
+53/tcp   open     domain
+80/tcp   filtered http
+111/tcp  filtered rpcbind
+443/tcp  filtered https
+953/tcp  filtered rndc
+3306/tcp filtered mysql
+5355/tcp filtered llmnr
+8080/tcp filtered http-proxy
+
+Nmap done: 8 IP addresses (8 hosts up) scanned in 1.54 seconds
+
+##### PUERTOS (despues): vm-visitas-1 (Visitas) -> red interna
+origen: ip-10-10-0-84.ec2.internal 10.10.0.84 
+Starting Nmap 7.93 ( https://nmap.org ) at 2026-11-16 05:45 UTC
+Nmap scan report for 10.10.0.28
+Host is up (0.00027s latency).
+
+PORT     STATE    SERVICE
+22/tcp   filtered ssh
+53/tcp   filtered domain
+80/tcp   filtered http
+111/tcp  filtered rpcbind
+443/tcp  filtered https
+953/tcp  filtered rndc
+3306/tcp filtered mysql
+5355/tcp filtered llmnr
+8080/tcp filtered http-proxy
+
+Nmap scan report for 10.10.0.21
+Host is up (0.00043s latency).
+
+PORT     STATE    SERVICE
+22/tcp   filtered ssh
+53/tcp   filtered domain
+80/tcp   filtered http
+111/tcp  filtered rpcbind
+443/tcp  filtered https
+953/tcp  filtered rndc
+3306/tcp filtered mysql
+5355/tcp filtered llmnr
+8080/tcp filtered http-proxy
+
+Nmap scan report for 10.10.0.60
+Host is up (0.00031s latency).
+
+PORT     STATE    SERVICE
+22/tcp   filtered ssh
+53/tcp   filtered domain
+80/tcp   filtered http
+111/tcp  filtered rpcbind
+443/tcp  filtered https
+953/tcp  filtered rndc
+3306/tcp filtered mysql
+5355/tcp filtered llmnr
+8080/tcp filtered http-proxy
+
+Nmap scan report for 10.10.0.84
+Host is up (0.00029s latency).
+
+PORT     STATE  SERVICE
+22/tcp   open   ssh
+53/tcp   closed domain
+80/tcp   closed http
+111/tcp  closed rpcbind
+443/tcp  closed https
+953/tcp  closed rndc
+3306/tcp closed mysql
+5355/tcp closed llmnr
+8080/tcp closed http-proxy
+
+Nmap scan report for 10.10.0.109
+Host is up (0.00027s latency).
+
+PORT     STATE    SERVICE
+22/tcp   filtered ssh
+53/tcp   filtered domain
+80/tcp   filtered http
+111/tcp  filtered rpcbind
+443/tcp  filtered https
+953/tcp  filtered rndc
+3306/tcp filtered mysql
+5355/tcp filtered llmnr
+8080/tcp filtered http-proxy
+
+Nmap scan report for 10.10.0.101
+Host is up (0.00031s latency).
+
+PORT     STATE    SERVICE
+22/tcp   filtered ssh
+53/tcp   filtered domain
+80/tcp   filtered http
+111/tcp  filtered rpcbind
+443/tcp  filtered https
+953/tcp  filtered rndc
+3306/tcp filtered mysql
+5355/tcp filtered llmnr
+8080/tcp filtered http-proxy
+
+Nmap scan report for 10.10.0.116
+Host is up (0.00025s latency).
+
+PORT     STATE    SERVICE
+22/tcp   filtered ssh
+53/tcp   filtered domain
+80/tcp   filtered http
+111/tcp  filtered rpcbind
+443/tcp  filtered https
+953/tcp  filtered rndc
+3306/tcp filtered mysql
+5355/tcp filtered llmnr
+8080/tcp filtered http-proxy
+
+Nmap scan report for 10.10.1.4
+Host is up (0.00026s latency).
+
+PORT     STATE    SERVICE
+22/tcp   filtered ssh
+53/tcp   filtered domain
+80/tcp   filtered http
+111/tcp  filtered rpcbind
+443/tcp  filtered https
+953/tcp  filtered rndc
+3306/tcp filtered mysql
+5355/tcp filtered llmnr
+8080/tcp filtered http-proxy
+
+Nmap done: 8 IP addresses (8 hosts up) scanned in 1.13 seconds
+
+##### PUERTOS (despues): vm-ti-1 (TI, administracion) -> red interna
+origen: ip-10-10-0-60.ec2.internal 10.10.0.60 
+Starting Nmap 7.93 ( https://nmap.org ) at 2026-11-16 05:45 UTC
+Nmap scan report for 10.10.0.28
+Host is up (0.00056s latency).
+
+PORT     STATE    SERVICE
+22/tcp   open     ssh
+53/tcp   filtered domain
+80/tcp   filtered http
+111/tcp  filtered rpcbind
+443/tcp  filtered https
+953/tcp  filtered rndc
+3306/tcp filtered mysql
+5355/tcp filtered llmnr
+8080/tcp filtered http-proxy
+
+Nmap scan report for 10.10.0.21
+Host is up (0.00046s latency).
+
+PORT     STATE    SERVICE
+22/tcp   open     ssh
+53/tcp   filtered domain
+80/tcp   filtered http
+111/tcp  filtered rpcbind
+443/tcp  filtered https
+953/tcp  filtered rndc
+3306/tcp filtered mysql
+5355/tcp filtered llmnr
+8080/tcp filtered http-proxy
+
+Nmap scan report for 10.10.0.60
+Host is up (0.00017s latency).
+
+PORT     STATE  SERVICE
+22/tcp   open   ssh
+53/tcp   closed domain
+80/tcp   closed http
+111/tcp  closed rpcbind
+443/tcp  closed https
+953/tcp  closed rndc
+3306/tcp closed mysql
+5355/tcp closed llmnr
+8080/tcp closed http-proxy
+
+Nmap scan report for 10.10.0.84
+Host is up (0.00069s latency).
+
+PORT     STATE    SERVICE
+22/tcp   open     ssh
+53/tcp   filtered domain
+80/tcp   filtered http
+111/tcp  filtered rpcbind
+443/tcp  filtered https
+953/tcp  filtered rndc
+3306/tcp filtered mysql
+5355/tcp filtered llmnr
+8080/tcp filtered http-proxy
+
+Nmap scan report for 10.10.0.109
+Host is up (0.00028s latency).
+
+PORT     STATE    SERVICE
+22/tcp   open     ssh
+53/tcp   filtered domain
+80/tcp   filtered http
+111/tcp  filtered rpcbind
+443/tcp  filtered https
+953/tcp  filtered rndc
+3306/tcp filtered mysql
+5355/tcp filtered llmnr
+8080/tcp filtered http-proxy
+
+Nmap scan report for 10.10.0.101
+Host is up (0.00034s latency).
+
+PORT     STATE    SERVICE
+22/tcp   open     ssh
+53/tcp   filtered domain
+80/tcp   open     http
+111/tcp  filtered rpcbind
+443/tcp  filtered https
+953/tcp  filtered rndc
+3306/tcp filtered mysql
+5355/tcp filtered llmnr
+8080/tcp filtered http-proxy
+
+Nmap scan report for 10.10.0.116
+Host is up (0.00043s latency).
+
+PORT     STATE    SERVICE
+22/tcp   open     ssh
+53/tcp   filtered domain
+80/tcp   open     http
+111/tcp  filtered rpcbind
+443/tcp  open     https
+953/tcp  filtered rndc
+3306/tcp filtered mysql
+5355/tcp filtered llmnr
+8080/tcp filtered http-proxy
+
+Nmap scan report for 10.10.1.4
+Host is up (0.00024s latency).
+
+PORT     STATE    SERVICE
+22/tcp   open     ssh
+53/tcp   open     domain
+80/tcp   filtered http
+111/tcp  filtered rpcbind
+443/tcp  filtered https
+953/tcp  filtered rndc
+3306/tcp filtered mysql
+5355/tcp filtered llmnr
+8080/tcp filtered http-proxy
+
+Nmap done: 8 IP addresses (8 hosts up) scanned in 1.43 seconds
+
+Registro guardado en /home/cloudshell-user/evidencia-aws/puertos-despues.log
