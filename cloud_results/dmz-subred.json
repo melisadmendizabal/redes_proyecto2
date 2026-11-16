@@ -1,0 +1,40 @@
+{
+    "Subnets": [
+        {
+            "AvailabilityZoneId": "use1-az1",
+            "MapCustomerOwnedIpOnLaunch": false,
+            "OwnerId": "597936860595",
+            "AssignIpv6AddressOnCreation": false,
+            "Ipv6CidrBlockAssociationSet": [],
+            "Tags": [
+                {
+                    "Key": "Project",
+                    "Value": "proyecto-redes"
+                },
+                {
+                    "Key": "Name",
+                    "Value": "snet-dmz"
+                }
+            ],
+            "SubnetArn": "arn:aws:ec2:us-east-1:597936860595:subnet/subnet-09af77442308c35b2",
+            "EnableDns64": false,
+            "Ipv6Native": false,
+            "PrivateDnsNameOptionsOnLaunch": {
+                "HostnameType": "ip-name",
+                "EnableResourceNameDnsARecord": false,
+                "EnableResourceNameDnsAAAARecord": false
+            },
+            "BlockPublicAccessStates": {
+                "InternetGatewayBlockMode": "off"
+            },
+            "SubnetId": "subnet-09af77442308c35b2",
+            "State": "available",
+            "VpcId": "vpc-02251b0b1ccc6414f",
+            "CidrBlock": "10.10.0.112/28",
+            "AvailableIpAddressCount": 10,
+            "AvailabilityZone": "us-east-1a",
+            "DefaultForAz": false,
+            "MapPublicIpOnLaunch": false
+        }
+    ]
+}

@@ -1,0 +1,45 @@
+{
+    "RouteTables": [
+        {
+            "Associations": [
+                {
+                    "Main": false,
+                    "RouteTableAssociationId": "rtbassoc-0814697e56b8c2f01",
+                    "RouteTableId": "rtb-05485a69996d5a396",
+                    "SubnetId": "subnet-09af77442308c35b2",
+                    "AssociationState": {
+                        "State": "associated"
+                    }
+                }
+            ],
+            "PropagatingVgws": [],
+            "RouteTableId": "rtb-05485a69996d5a396",
+            "Routes": [
+                {
+                    "DestinationCidrBlock": "10.10.0.0/24",
+                    "GatewayId": "local",
+                    "Origin": "CreateRouteTable",
+                    "State": "active"
+                },
+                {
+                    "DestinationCidrBlock": "0.0.0.0/0",
+                    "GatewayId": "igw-09a71c300f15a3667",
+                    "Origin": "CreateRoute",
+                    "State": "active"
+                }
+            ],
+            "Tags": [
+                {
+                    "Key": "Project",
+                    "Value": "proyecto-redes"
+                },
+                {
+                    "Key": "Name",
+                    "Value": "rt-dmz"
+                }
+            ],
+            "VpcId": "vpc-02251b0b1ccc6414f",
+            "OwnerId": "597936860595"
+        }
+    ]
+}

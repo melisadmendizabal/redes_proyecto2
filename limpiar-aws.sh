@@ -29,6 +29,7 @@ aws ec2 describe-internet-gateways --filters "Name=attachment.vpc-id,Values=$VPC
 aws ec2 describe-instances --filters "$F"                    > "$OUT/instancias.json"
 aws ec2 describe-vpc-endpoints --filters "$F"                > "$OUT/vpc-endpoints.json"
 aws ec2 describe-instance-connect-endpoints --filters "$F"   > "$OUT/instance-connect-endpoints.json"
+aws ec2 describe-addresses --filters "Name=tag:Project,Values=$PROJ" > "$OUT/elastic-ips.json"
 
 read -r -p "Se borrara TODA la VPC $VPC y sus recursos. Escribe SI para continuar: " R
 [ "$R" = "SI" ] || { echo "Cancelado."; exit 0; }
@@ -41,6 +42,14 @@ if [ -n "$IDS" ]; then
   aws ec2 terminate-instances --instance-ids $IDS >/dev/null
   aws ec2 wait instance-terminated --instance-ids $IDS
 fi
+
+echo "==> Liberando Elastic IPs del proyecto (web publica de la DMZ)"
+for A in $(aws ec2 describe-addresses --filters "Name=tag:Project,Values=$PROJ" \
+           --query "Addresses[].AllocationId" --output text); do
+  ASOC=$(aws ec2 describe-addresses --allocation-ids "$A" --query "Addresses[0].AssociationId" --output text)
+  [ "$ASOC" = "None" ] || aws ec2 disassociate-address --association-id "$ASOC"
+  aws ec2 release-address --allocation-id "$A"
+done
 
 echo "==> Borrando endpoints de la VPC (S3 de la intranet)"
 EPS=$(aws ec2 describe-vpc-endpoints --filters "$F" --query "VpcEndpoints[].VpcEndpointId" --output text)
